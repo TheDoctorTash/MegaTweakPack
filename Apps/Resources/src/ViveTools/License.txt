@@ -1,0 +1,23 @@
+Copyright (c) 2016 Richard Kopelow
+
+This copyright notice and permission notice (the "License") of this software and associated documentation files and/or compiled or interpreted derivatives thereof (the "Software") is presented under the associated name "<title>" (the "Title") and is presented by <copyright holders> (the "Copyright Holders").
+
+Permission is hereby granted, free of charge, to any person or legal entity obtaining the Software, to deal in the Software without restriction, including without limitation of the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to the following conditions:
+
+1) Any media, multimedia, or software be it physical or digital including (but not limited to) software, services, games, assets, presentations, videos, and/or motion pictures (a "Production") using and/or made through use of the Software are required to give credit to the Copyright Holders and specify the Title of the Software due to whose use credit is being given in any reasonable manner subject to the following conditions:
+
+    a) This "Statement of Credit" must be contained within or included in the distribution of the Production in an easily accessible manner.
+
+    b) Any Production may neither make use of Title of the Software nor the Copyright Holders' respective names and/or trademarks in any way that suggests the endorsement of the Production, use of the Production, and/or the Software and its use unless that permission is expressly granted by other licenses and/or legal documents furnished by or obtained from the Copyright Holders.
+    
+    c) Any Production which uses and/or contains a modified version of the Software must indicate that the Software was modified both in the included permission notice for the Software and in the Statement of Credit.
+
+    d) Any sublicense containing a copy or substantial portion of the Software and/or a copy or portion of a Production using and/or made through the use of the Software is subject to this condition (1).
+
+2) Any Production is not obligated to comply with the terms of this License for any portion of the Software already in the public domain. 
+
+3) Any Production is not obligated to comply with those specific terms of this License to which an applicable exception applies in such scenarios as these exceptions warrant.
+
+4) The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

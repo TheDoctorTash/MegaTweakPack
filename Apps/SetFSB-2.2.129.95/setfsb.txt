@@ -1,0 +1,384 @@
+****************************************************************************************
+;  SetFSB Version 2.2.129.95 Copyright (C) 2001-2009 by abo
+;	Current Platform - Windows Vista/2003/XP/2000/NT4/Me/98 [x86/x64]
+;	Programmed in HSP Ver3.1 ONION software (http://hsp.tv/)
+;	  WinRing0[OpenLibSys Core SDK] OpenLibSys.org (http://openlibsys.org/)
+****************************************************************************************
+
+1.About SetFSB Version 2.2.129.95
+
+ This software is a freeware or shareware(impolite users' license).
+
+ Supported Clock Generator (Motherboard/[Notebook]):
+   	ICS9148BF-26 (Gigabyte GA-6ZXC)
+   	ICS9248BF-87 (Akimbo AP1200)
+   	ICS9248BF-96 (Fujitsu FMV DESKPOWER C5/86WL)
+   	ICS9248EF-199 (Biostar M7SUA, Matsonic MS9357E)
+   	ICS932S401EGLF (SuperMicro X7DA3+, Tyan Tempest i5400PW)
+   	ICS932S421BGLF (Intel D5400XS, Tyan Tempest i5400XL)
+   	ICS94201DF (ASUS TUSL2-C)
+   	ICS94222AF (ASUS CUV4X-E)
+  	ICS94225AF (EPoX EP-8K7A, ASUS A7M266)
+   	ICS94228BF (EPoX EP-8KHA+, EPoX EP-8K3A/+, ASUS A7V333)
+   	ICS94229AF (Soyo K7V Dragon Plus!)
+  	ICS94237AF (Asus CUV266)
+   	ICS950209CF (Fujitsu-Siemens Scaleo L)
+   	ICS950405AF (ASUS K8V, ECS KV2 Lite )
+   	ICS950410AFLF (MSI K8T NEO2-F V2.0)
+   	ICS950703BF (ASUS P4T533)
+   	ICS950812BG (Compaq Presario 2201AP)
+   	ICS951402AG (HP Compaq nc4010)
+   	ICS951403CF (FIC AT31)
+   	ICS951412AG (HP Pavilion ZV6000)
+   	ICS951416BGLF (HP 6515B)
+   	ICS951417AFLF (Intel D101GGC)
+   	ICS951461BGLF (DFI ICFX3200)
+   	ICS951462AGLF (Acer Aspire 5100)
+   	ICS951463BGLF (Acer Aspire M5610)
+   	ICS951464AGLF (Acer M1100)
+   	ICS952001AF (MSI 645U)
+   	ICS952003AF (ASUS P4S333-C)
+   	ICS952013CFLF (Sony VGC-M1)
+   	ICS952018AF (Acer E661FXM, ASUS P4S800-MX)
+   	ICS952505AF (ASRock 939Dual-SATA2)
+   	ICS952607EF (ASUS P4C800/P4P800, Foxconn 865A01-PE)
+  	ICS952611BF (MSI MS-6728)
+   	ICS952619CF (AOpen AX4SPE Max)
+   	ICS952623CG (Toshiba Satellite P10-554)
+   	ICS952703BF (Asrock K7S8XE+)
+   	ICS952906AGLF (VIA PICO ITX EPIA PX10000G, Fujitsu Siemens Amilo Pro V2030)
+   	ICS953002DFLF (ABIT IP95)
+   	ICS953401CFLF (Fujitsu sienems P5SD2-FM)
+   	ICS953805CFLF (ECS GS7610 ULTRA V1.1C, ASUS A8S-X-UAYZ, Foxconn 761GXK8MC)
+   	ICS954103EF (Gateway 505GR)
+   	ICS954105BF (HP xw4400)
+  	ICS954108CFLF (Intel D975XBX)
+   	ICS954119DFLF (MEDION MD8800[MSI MS-7204])
+   	ICS954123CGLF (ASUS P5W-DH)
+   	ICS954124AFLF (Shuttle SD37P2)
+   	ICS954127BFLF (ABIT IL9 Pro)
+   	ICS954141CFLF (ASUS P5LP-LE)
+   	ICS954201BGLF (Samsung X20)
+   	ICS954213AGLF (ASUS A6VA, M9V/N, COMPAQ Presario B2800)
+   	ICS954227CGLF (Sony VAIO VGN-S460/S580P)
+   	ICS954310BGLF (Acer Aspire 5570Z/5601AWLMi, Mitac 8258i, Toshiba Satellite L45-S4687)
+   	ICS954519BGLF (MSI 975X Platinum)
+   	ICS954552CGLF (ASUS N4L-VM)
+   	ICS9LPRS113AKLF (MSI P45 Diamond/platinium/Neo)
+   	ICS9LPRS133BKLF (MSI X58 Eclipse SLI)
+   	ICS9LPRS139AKLF (EVGA X58 SLI, Foxconn BloodRage, Dell Studio XPS 435 MT, MSI P45 Neo-F)
+  	ICS9LPR310BGLF (ASUS N10J, Mitac 8258i, Toshiba Satellite L45-S4687)
+   	ICS9LPR316AGLF (Kohjinsha SH6/SH8)
+   	ICS9LPR321BKLF (Sony VAIO VGN-FE31Z/41Z, VAIO UX series)
+   	ICS9LPRS355BGLF (HP 2510P)
+   	ICS9LPR363DGLF (ASUS G1S/G2S/F3SV/F8SV/A7S-7S006C/A6JM/G1Sn)
+   	ICS9LPRS365BGLF (FS U9200 with the hardware remodeling, Acer 7730G)
+   	ICS9LPR367AGLF (ASUS Nova Lite EP20)
+   	ICS9LPRS419DFLF (ECS 945GCT-M/1333, Acer AM5630, Lenovo 9702 A66, ABIT I45-CV)
+   	ICS9LPR426AGLF (ASUS Eee PC)
+   	ICS9LPR427AGLF (ASUS Eee PC 1000, Foxconn Qbook)
+   	ICS9LPRS471AKL (ECS A770M-A)
+   	ICS9LPRS477BKL (Asus M3A, DFI LP UT 790FX-M2R)
+   	ICS9LPR501HGLF (ABIT IB9,IP35)
+   	ICS9LPR501SGLF (Toshiba Tecra A9 with the hardware modification)
+   	ICS9LP505-2HGLF (Sony VAIO type R master)
+  	ICS9LPRS509HGLF(DFI Infinity P965-S, Biostar TP35D2-A7, Foxconn P35A, ECS P35T-A V1.0)
+   	ICS9LPRS511EGLF (Foxconn G9657MA-8EKRS2H, Shuttle SP35P2 PRO/X27D Barebone, Supermicro C2SBA)
+   	ICS9LPRS514EGLF (MSI P965 platinum, Foxconn 946GZ7MA-8K2SH)
+   	ICS9LPRS552AGLF (ASUS P5K31-VM/P5B-E/P5B-Plus/P5B[Vanilla], GIGABYTE G33M-DS2R)
+   	ICS9LPRS587AGLF (GIGABYTE GA-965P-DS3)
+   	ICS9LPRS587EGLF (GIGABYTE P35-DS3)
+   	ICS9LPR604AGLF (Intel D201GLY)
+   	ICS9LPRS906CGLF (MSI P35 Platinum)
+   	ICS9LPRS910BKL (MSI X38 Diamond)
+   	ICS9LPRS914EKL (Gigabyte X38-DQ6,X38T-DQ6, GA-P45-DS3L)
+   	ICS9LPRS916JGLF (ASUS P5K, P5QL Pro)
+   	ICS9LPRS918BKL (ASUS P5K/3 Deluxe, P5E, P5Q Deluxe, P5Q-E)
+   	ICS9LPRS918JKL (DFI LanParty DK X38/X48 T2R, UT X48 T3R, LanParty UT/DK/JR X58)
+   	ICS9LPRS919BKL (Foxconn Mars)
+   	ICS9LPRS926EGLF (ECS P45T-A/X48T-A)
+   	ICS9LPRS929AKLF (ASUS W90)
+   	ICS9LPRS954BGLF (ASUS P5KPL-AM)
+   	ICS9UMS9610BL (Sony VAIO P Series, Dell mini 10)
+   	CV110JPVG (Intel Nine Mile D945PLNM)
+   	CV122CPVG (ASUS P5LD2-VM SE)
+   	CV125PAG (FSC Amilo Pro 3505, Acer TravelMate 2428AWXMi)
+   	CV137PAG (FSC Amilo 1650G)
+   	CV152PVG (SuperMicro X7DB8+)
+   	CV174CPAG (Intel DG965LV/DQ965GF/DG965RY/DG965WH/DP965LT)
+   	CV179CNLG (Samsung NC10)
+   	CV183APAG (Intel DQ35JOE, Dell Optiplex 330)
+   	CV184-2APAG (NEC Express5800 S70 Type FL)
+   	CV190BPAG (ASUS IPIBL-LA[Berkeley])
+   	CV193CPAG (ECS X58B-A)
+   	CY28341OC-3 (Biostar M7VIZ)
+   	CY28346ZI-2 (IBM ThinkPad T42 2373-7WG)
+   	CY28349BOC (HP A808.uk)
+   	CY28551LFXC (ASUS P5B-Deluxe/COMMANDO, Intel G35EC)
+   	CY28551LFXC_DFI (DFI LANPARTY UT/LT P35/X38/X48 T2R, DK P35 T2/T2RS, Blood Infinity P35 T2R)
+   	IMIC9827HY (IBM ThinkPad X31 2672CAJ, Acer Aspire 1414, Fujitsu Siemens Scenic i845D)
+   	RTM520-39D (EPoX EP-BX6, Chaintech CT-6ASA4)
+   	RTM580-255R (ABIT KV7)
+   	RTM862-520 (MSI PM8M3-V)
+   Add	RTM865T-300 (Gateway MX3142M/MX3139M)
+   	RTM865T-433 (Acer Aspire 4710G/1652ZWLMi)
+   	RTM866-485 (ECS 945GCT-M2)
+   	RTM866-890 (Asrock 4CoreDual-VSTA)
+   	RTM870T-691 (MSI K9AGM3-FIH)
+   	RTM875T-587 (Jetway I35P-SG-PB/I35P-SG/BI100-KU, Gigabyte GA-G31MF-S2)
+   	RTM876-660 (GIGABYTE GA-TG965MP-RH ME-B01barebone, Asus P5GC-MX/1333)
+   	RTM876-665 (MSI 945GCM478)
+   	RTM885N-914 (Biostar T-Power X58)
+   	RTM885T-926B (Biostar TPower I55)
+   	SLG505YC56DT (Intel D975XBX2, DQ965COE)
+   	SLG505YC256BT (Intel DG33BU/DX39BT)
+   	SLG505YC264BT (Intel DP35DP)
+   	SLG8SP513V (Samsung R70)
+   	SLG8LP625T (MSI MS-7304[Fujitsu-Siemens Amilo Pa/La-Series])
+   	W83194BG-SD (ASRock ConRoe865PE)
+   	W83194R-39B (Abit VH6-II)
+   	W83195BR-25 (ONDA ID815EP/T)
+   	W83195BG-101 (ASRock ConRoeXFire-eSATA2)
+
+ Windows Vista [x64]
+  SetFSB used Signed Device Driver[WinRing0]. So, they work fine on Vista x64.
+  http://crystalmark.info/information/vista-e.html
+
+ Well-known bug
+  The DDR frequency is not correct ratio. "FSB:DDR" is always 1:2.
+    (Intel 9xx/G33/P35/X38/X58/5000X/5400X, ATI ALL, VIA K8T800/PT880Ultra/VN800/VX700, SiS SiS649-761GX)
+  "Current CPU Frequency : Internal" problem with the variable magnification.
+
+2.Warning !!!
+ If you are a beginner, do not use this software.
+ This software is for power users only.
+ Use "SetFSB.exe" at your own risk.
+
+3.Command Line Switch Options
+ SetFSB Version 2.2.129.95 has the following Command Line Switch Options.
+
+   -w : Wait [00-99 sec] default=10sec
+   -s : Set FSB [000-999 MHz]
+   -i : Increment(targetFSB > currentFSB) or Decrement(targetFSB < currentFSB) [00-99 MHz] default=max 
+   -u : 0(default)=normal , 1=ultra
+   -b : 0(default)=normal , 1=background
+   -p : PCI-E [000-999 MHz] default=none
+         FSB overclock[set PCI-E then increase FSB], FSB underclock[decrease FSB then set PCI-E]
+   -q : Quiet [no GUI to be displayed at all]
+   -cg[string] : Clock Generator default=none Maximum 15 characters
+
+ Example: -w05 -s300 -cg[ICS9LPRS918BKL] -u1
+
+4.Contact
+  The information that SetFSB development needs is as follows.
+    a. the motherboard(/PC) name
+    b. the chipset name
+    c. the clock generator name
+
+ HomePage: http://www13.plala.or.jp/setfsb/
+ E-Mail: setfsb@zpost.plala.or.jp
+
+5.History
+ 2.2.129.95 - 08/08/2009 Added RTM865T-300(Gateway MX3142M/MX3139M).
+   Supported ATI Radeon Xpress 200M Chipset.
+ 2.2.128.94 - 08/01/2009 Added RTM885T-926B(Biostar TPower I55).
+   Supported Intel P55 Chipset.
+   Included Acer Aspire 1652ZWLMi(RTM865T-433).
+ 2.2.127.93 - 07/23/2009 Added ICS94229AF(Soyo K7V Dragon Plus!), W83195BR-25(ONDA ID815EP/T).
+   Included ACER Aspire 5601AWLMi(ICS954310BGLF).
+ 2.2.125.92 - 07/10/2009 Added ICS9LPRS471AKL(ECS A770M-A).
+   Supported AMD-770(RX780) Chipset.
+ 2.2.124.91 - 07/06/2009 Added ICS9LPR501SGLF(Toshiba Tecra A9 with the hardware modification).
+   Supported AMD-790FX Chipset.
+   Fixed ICS9LPR427AGLF bug.
+   Included DFI LP UT 790FX-M2R(ICS9LPRS477BKL), Toshiba Satellite L45-S4687(ICS954310BGLF).
+ 2.2.123.90 - 06/21/2009 Added ICS9148BF-26(Gigabyte GA-6ZXC), ICS9LPRS133BKLF(MSI X58 Eclipse SLI), ICS9248BF-96(Fujitsu FMV DESKPOWER C5/86WL).
+ 2.2.120.89 - 06/06/2009 Added ICS9LPRS954BGLF(ASUS P5KPL-AM), CY28346ZI-2(IBM ThinkPad T42 2373-7WG) ,CV184-2APAG(NEC Express5800 S70 Type FL).
+   Included Foxconn 865A01-PE(ICS952607EF).
+ 2.2.117.88 - 05/30/2009 Added ICS9LPR367AGLF(ASUS Nova Lite EP20), SLG8LP625T(MSI MS-7304[Fujitsu-Siemens Amilo Pa/La-Series]).
+   Fixed ICS9LPR426AGLF bug.
+   Changed the PLL parameter type 11.
+ 2.2.115.87 - 05/24/2009 Added CV110JPVG(Intel Nine Mile D945PLNM).
+   Included Dell Optiplex 330(CV183APAG).
+ 2.2.114.86 - 05/17/2009 Added ICS950209CF(Fujitsu-Siemens Scaleo L).
+   Fixed ICS953805CFLF bug. (Supported Foxconn 761GXK8MC)
+   Included MSI P45 Neo(ICS9LPRS113AKLF), Dell mini 10(ICS9UMS9610BL).
+ 2.2.113.85 - 04/26/2009 Added CY28341OC-3(Biostar M7VIZ).
+   Supported VIA KM400 chipset.
+   Fixed the Command Line Switch "-q".
+ 2.2.112.84 - 04/20/2009 Added CV152PVG(SuperMicro X7DB8+).
+   Added the Command Line Switch for Quiet.
+   Changed the Command Line Switch specification of "-p".
+ 2.2.111.83 - 04/16/2009 Fixed ICS9LPR427AGLF bug. (Supported Foxconn Qbook)
+ 2.2.111.82 - 04/15/2009 Added ICS951462AGLF(Acer Aspire 5100),ICS951417AFLF(Intel D101GGC).
+   Supported ATI Radeon Xpress 200 Chipset.
+ 2.2.109.81 - 04/11/2009 Added ICS9LPRS929AKLF(ASUS W90).
+   Fixed IMIC9827HY bug. (Supported Fujitsu Siemens Scenic i845D)
+   Changed impolite users' license to the shareware.
+ 2.2.108.80 - 04/05/2009 Added W83194R-39B(Abit VH6-II).
+   Stopped impolite users' support.
+ 2.2.107.79 - 04/01/2009 Added ICS94222AF(ASUS CUV4X-E), CV179CNLG(Samsung NC10).
+   Invalidated ID number 4075964581,2884185119.
+ 2.2.105.78 - 03/21/2009 Added ICS9LPRS477BKL(Asus M3A).
+   Supported AMD-790GX chipset.
+ 2.2.104.77 - 03/20/2009 Added CV193CPAG(ECS X58B-A), CY28349BOC(HP Pavilion A808.uk).
+   Fixed ICS9LPRS511EGLF bug. (Supported Shuttle X27D Barebone, Supermicro C2SBA)
+ 2.2.102.76 - 03/18/2009 Added ICS952013CFLF(Sony VGC-M1), ICS9LPRS355BGLF(HP 2510P).
+   Fixed ICS9LPR363DGLF bug. (Supported Asus G1Sn)
+   Changed the Command Line Switch specification of "-i".
+   Changed impolite user's license from the freeware to the mailwear.
+ 2.1.100.0 - 03/07/2009 Added ICS9UMS9610BL.
+   Supported Intel SCH US15W chipset.
+ 2.1.99.0  - 03/06/2009 Added ICS952611BF,ICS94237AF.
+   Fixed ICS9LPRS509HGLF,ICS9LPR310BGLF bug.
+   Supported ECS P35T-A V1.0(ICS9LPRS509HGLF), Gigabyte GA-P45-DS3L(ICS9LPRS914EKL), MSI P45 Neo-F(ICS9LPRS139AKLF),
+     - Mitac 8258i(ICS9LPR310BGLF), Acer 7730G(ICS9LPRS365BGLF).
+ 2.1.97.0  - 02/22/2009 Added ICS9LPRS365BGLF(FS U9200 with the hardware remodeling).
+   Supported Acer TravelMate 2428AWXMi(CV125PAG).
+ 2.1.96.0  - 02/17/2009 Added ICS952703BF,CV125PAG.
+   Supported ABIT I45-CV(ICS9LPRS419DLF),Acer Aspire 5054WXMi(RTM870T-691), ASUS P5Q-E(ICS9LPRS918BKL).
+ 2.1.94.0  - 02/08/2009 Added RTM862-520.
+   Fixed ICS9LPRS139AKLF bug.
+   Supported Dell Studio XPS 435 MT(ICS9LPRS139AKLF).
+   Added the Clock Generator for command line.
+ 2.1.93.0  - 01/25/2009 Added ICS954124AFLF.
+ 2.1.92.0  - 01/22/2009 Added CV137PAG.
+ 2.1.91.1  - 01/10/2009 Fixed CY28551LFXC bug.
+   Supported Intel G35EC(CY28551LFXC).
+ 2.1.91.0  - 01/08/2009 Added ICS94201DF.
+   Fixed ICS9LPR427AGLF bug.
+   Changed the PLL parameter of type 5,6.
+ 2.1.90.0  - 01/07/2009 Added ICS9248BF-87.
+   Changed the PLL parameter of type 9.
+ 2.1.89.0  - 01/03/2009 Added ICS952619CF.
+   Fixed ICS9LPRS139AKLF bug.
+   Supported ASUS M9V/N, COMPAQ Presario B2800(ICS954213AGLF), Foxconn BloodRage(ICS9LPRS139AKLF).
+ 2.1.88.0  - 12/31/2008 Added ICS9LPRS139AKLF.
+   Fixed ICS9LPRS918JKL bug.
+   Supported DFI LanParty UT/DK/JR X58(ICS9LPRS918JKL).
+ 2.1.87.0  - 12/19/2008 Added ICS9LPRS926EGLF,W83195BG-101.
+ 2.1.85.0  - 12/16/2008 Added SLG8SP513V.
+   Supported Foxconn 946GZ7MA-8K2SH(ICS9LPRS514EGLF).
+ 2.1.84.1  - 12/10/2008 Fixed ICS9LPRS916JGLF.
+   Changed ICS9LPRS916BGLF to ICS9LPRS916JGLF.
+   Supported Tyan Tempest i5400XL(ICS932S421BGLF), ASUS P5QL Pro(ICS9LPRS916JGLF).
+ 2.1.84.0  - 12/04/2008 Added ICS952505AF.
+   Fixed ICS9248EF-199.
+   Supported Matsonic MS9357E(ICS9248EF-199), Asus P5GC-MX/1333(RTM876-660),Lenovo 9702 A66(ICS9LPR419DFLF).
+   Supported ULi M1695[M1567] chipset.
+ 2.1.83.0  - 11/14/2008 Added ICS951412AG.
+   Supported Acer AM5630(ICS9LPR419DFLF).
+ 2.1.82.0  - 11/08/2008 Added ICS954127BFLF,RTM885N-914.
+   Supported Intel X58 chipset.
+ 2.1.80.0  - 11/04/2008 Added ICS9LPR310BGLF,RTM580-255R.
+   Supported ASUS G2S(ICS9LPR363DGLF),Gigabyte GA-G31MF-S2(RTM875T-587),ECS KV2 Lite(ICS950405AF).
+ 2.1.78.0  - 10/11/2008 Added ICS950410AFLF,ICS954310BGLF,RTM876-665,W83194BG-SD.
+   Supported VIA Apollo K8T800 Pro chipset.
+ 2.1.74.0  - 09/26/2008 Added ICS951402AG.
+   Supported ATI RADEON IGP350[ALI M1533] chipset.
+ 2.1.73.0  - 08/21/2008 Added ICS9LPR427AGLF.
+ 2.1.72.0  - 08/16/2008 Added ICS954119DFLF,RTM865T-433.
+ 2.1.70.0  - 08/14/2008 Added ICS9LPRS113AKLF.
+   Fixed ICS9LPRS918BKL,ICS9LPRS509HGLF.
+ 2.1.69.2  - 05/25/2008 Supported Tyan Tempest i5400PW. (ICS932S401EGLF)
+ 2.1.69.1  - 05/20/2008 Fixed Asrock 4CoreDual-VSTA bug. (RTM866-890)
+ 2.1.69.0  - 05/06/2008 Added ICS954103EF,ICS952003AF.
+   Supported ASUS A6JM(ICS9LPR363DGLF), Sony VAIO UX series(ICS9LPR321BKLF).
+ 2.1.67.0  - 05/02/2008 Added ICS9LP505-2HGLF.
+   Supported SiS756 chipset.
+   Added ASUS A8S-X-UAYZ. ICS953805CFLF
+ 2.1.66.1  - 04/26/2008 Fixed the PLL parameter editor.
+ 2.1.66.0  - 04/26/2008 Supported the PLL Creator Function.
+   Added the PLL parameter editor, Delete, Import, Export.
+ 2.0.b.21l - 04/24/2008 Added CY28551LFXC_DFI,ICS9LPRS918JKL.
+   Fixed DFI motherboard. (CY28551LFXC_DFI,ICS9LPRS918JKL)
+ 2.0.b.21f - 04/20/2008 Added RTM870T-691,ICS953401CFLF.
+   Supported SiS649 chipset.
+ 2.0.b.20z - 04/16/2008 Added IMIC9827HY,ICS932S401EGLF,ICS932S421BGLF,ICS951464AGLF.
+   Added the PCI-E Frequency for command line.
+   Supported Intel 5000X/5400X chipset.
+ 2.0.b.20l - 03/16/2008 Added ICS954201BGLF,ICS9LPR321BKLF.
+   Added ASUS P4S800-MX. ICS952018AF
+ 2.0.b.20c - 03/02/2008 Added ICS952018AF,RTM875T-587.
+   Supported SiS661F[/SiS964] chipset.
+ 2.0.b.19t - 02/18/2008 Fixed ICS954552CGLF.
+ 2.0.b.19s - 02/18/2008 Added CV190BPAG.
+ 2.0.b.19p - 02/03/2008 Added ICS9LPRS552AGLF.
+ 2.0.b.19o - 01/29/2008 Added ICS9LPRS419CFLF,ICS954552CGLF.
+   Fixed Intel D201GLY bug. ICS9LPR604AGLF
+ 2.0.b.19j - 01/19/2008 Added ICS9LPR604AGLF.
+   Added the background mode for command line.
+ 2.0.b.19a - 01/06/2008 Added ICS951463BGLF.
+   Added ASUS F8SV. ICS9LPR363DGLF
+ 2.0.b.18y - 01/03/2008 Added ICS9LPRS587EGLF,ICS9LPR426AGLF,ICS9LPRS514EGLF,ICS953805CFLF.
+   Fixed Gigabyte X38-DQ6. ICS9LPRS914EKL
+   Added Fujitsu Siemens Amilo Pro V2030. ICS952906AFLF
+   Supported VIA VN800 and  SiS761GX[/SiS965L] chipset.
+   Improved WinRing0 stability.(Updated WinRing0 to 1.0.11.)
+ 2.0.b.18l - 12/02/2007 Added ICS954519BGLF.
+ 2.0.b.18j - 11/30/2007 Added ICS9LPRS910BKL,ICS9LPR316AGLF.
+ 2.0.b.18g - 11/24/2007 Added ICS950405AF,SLG505YC264BT.
+   Improved WinRing0 stability.(Updated WinRing0 to 1.0.10.)
+ 2.0.b.17w - 11/10/2007 Added CV183APAG.
+ 2.0.b.17u - 11/06/2007 Added ICS954213AGLF.
+   Fixed Windows vista bug.
+   Updated WinRing0[OpenLibSys Core SDK].
+ 2.0.b.17m - 11/03/2007 Added ICS952906AGLF,ICS9LPR363DGLF.
+   Supported VIA VX700 chipset.
+ 2.0.b.17d - 10/26/2007
+   Fixed Foxconn P35A. ICS9LPRS509HGLF
+ 2.0.b.17c - 10/23/2007 Added SLG505YC256BT.
+   Supported Intel G33 chipset.
+   Updated WinRing0[OpenLibSys Core SDK].
+ 2.0.b.17a - 10/21/2007
+   Fixed Windows Vista X64 bug.
+   Changed Signed Device Driver to OpenLibSys.
+ 2.0.b.16h - 10/07/2007 Added ICS9LPRS914EKL,ICS951416BGLF.
+   Supported Intel X38 and ATI RS690M chipset.
+   Fixed CrystalCPUID/CrystalMark 2004R2/CrystalDMI interference.
+ 2.0.b.16a - 09/30/2007 Added RTM866-890.
+   Supported VIA PT880Ultra chipset.
+ 2.0.b.15w - 09/23/2007 Added ICS9LPRS919BKL.
+   Fixed Biostar TP35D2-A7(BIOS P35BA817). ICS9LPRS509HGLF
+   Supported ABIT IP35(ICS9LPR501HGLF).
+ 2.0.b.15r - 09/07/2007 Added RTM866-485.
+ 2.0.b.15o - 08/28/2007 Added ICS953002DFLF,ICS9LPRS906CGLF.
+   Fixed CY28551LFXC bug.
+ 2.0.b.15f - 05/31/2007 Added ICS9LPRS916BGLF,ICS952623CG.
+   Fixed CV174CPAG bug.
+ 2.0.b.13 - 05/09/2007 Added ICS9LPRS918BKL.
+   Supported Intel P35 chipset.
+ 2.0b9j - 05/03/2007 Added ICS9LPRS509HGLF.
+ 2.0b9h - 04/29/2007 Added ICS951403CF,ICS950812BG,ICS954227CGLF.
+    Supported ATI RADEON IGP320 chipset.
+ 2.0b8t - 04/01/2007 Added ICS9248D/EF-199.
+    Supported SiS740 chipset.
+ 2.0b8r - 03/31/2007 Added ICS952001AF.
+    Supported SiS645 chipset.
+ 2.0b8m - 03/25/2007 Added RTM520-39D.
+    Supported Intel440BX, VIA Pro133(A/T) chipset.
+ 2.0b8i - 03/17/2007 Added ICS9LPR501HGLF.
+    Fixed SLG505YC56DT bug.
+ 2.0b8g - 03/08/2007 Added ICS950405AF.
+    Supported VIA K8T800 chipset.
+ 2.0b8f - 03/05/2007 Added CV174CPAG,ICS94228BF.
+    Supported VIA KT266(A)/333/400(A)/600 chipset.
+ 2.0b8e - 02/27/2007 Added ICS94225AF.
+   Fixed Windows Me/98 bug.
+   Supported AMD-760(VIA VT82C686/A/B) chipset.
+   Improved SMBus stability.
+   Corrected CPU Frequency xxxx.xMHz [x64].
+ 2.0b7  - 02/18/2007 Added RTM876-660.
+ 2.0b7g - 02/18/2007 Added ICS954123CGLF.
+ 2.0b7c - 02/16/2007 Added CV122CPVG.
+ 2.0b6  - 02/15/2007 Added ICS950703BF,ICS954108CFLF.
+   Fixed SMBus bug.
+   Added manifest for Windows Vista.
+ 2.0b5  - 02/09/2007 Added SLG505YC56DT,ICS9514618GLF.
+   Supported ATI Xpress 3200 Intel (RD600/SB600) chipset.
+   Supported Windows Vista/2003/XP [x64]
+ 2.0b4  - 02/05/2006 Added ICS9LPRS511EGLF.
+ 2.0b3  - 11/19/2006 Added CY28551LFXC.
+ 2.0b2  - 11/12/2006 First release. ICS952607EF,ICS954141CFLF,ICS9LPRS587AGLF
+
+****************************************************************************************

@@ -7,5 +7,4 @@ Download the MegaTweakPack - https://github.com/TheDoctorTash/MegaTweakPack/arch
 
 Known bugs:
 1. Hibernation dosent work
-2. Status of the internet icon not working
-3. PSR not launching
+2. DNS resolve slow up

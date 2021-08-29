@@ -19,27 +19,54 @@ if %errorlevel% neq 0 (
 	echo: UAC.ShellExecute "%~f0", "", "", "runas", 1 >> "%~dp0..\..\Logs\getadmin.vbs"
 	"%~dp0..\..\Logs\getadmin.vbs" goto :eof )
 if exist "%~dp0..\..\Logs\getadmin.vbs" ( del /f /q "%~dp0..\..\Logs\getadmin.vbs" ) & goto :eof
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
+echo.
+echo.                      П Р Е Д У П Р Е Ж Д Е Н И Е
+echo.                      ===========================
+echo.
+echo. MegaTweaksPack for Highest Performance от TheDoctor - это системный скрипт для 
+echo. оптимизации, тонкой настройки и очистки Windows 10 от системного мусора.
+echo. Все это в совокупности, позволит увеличить скорость работы системы, вы сможете 
+echo. устранить разного типа ошибки, улучшить безопасность и применить ряд других 
+echo. оптимизированных настроек. Вы получите свыше 50 разных утилит, которые помогут 
+echo. вам заставить Windows 10 работать быстрее и стабильнее.
+echo.
+echo.
+echo. Для корректного выполнения скрипта, вам необходимо отключить антивирус и 
+echo. добавить всю папку со скриптом в доверенную зону. ПОСЛЕ выполнения скрипта, 
+echo. добавьте папку %HomeDrive%\Windows\Tools в доверенную зону антивируса.
+echo.
+echo.===============================================================================
+echo.
+echo. Создатель скрипта:        TheDoctor
+echo. Версия скрипта:           0.9
+echo. Контактная информация:    Telegram - eastrica_support1, Zello - TheDoctorTash
+echo.
+echo.===============================================================================
+echo.
+choice /c yn /n /m "Вы выполнили все условия и подтверждаете запуск? [Y:Запустить / N:Выйти]"
+if errorlevel 2 goto :eof
+:: #########################################################################################################################################################################################################################
 call :clr
 chcp 1251 | break
 pushd "%cd%"
 cd /d "%~dp0"
 if /i not "%cd%\"=="%~dp0" cd /d "%~dp0"
-set tmpfile=%~dp0..\..\Logs\timer.dat
+set tmpfile=%~dp0..\..\Logs\temp.dat
 time /t > %tmpfile%
 set /p ftime= < %tmpfile%
 set daytime=%date:~6%%date:~3,2%%date:~0,2%_%ftime:~0,2%%ftime:~3,2%
-set logfile=%~dp0..\..\Logs\MegaTweakPack_%daytime%.txt
+set logfile=%~dp0..\..\Logs\MegaTweakPack_%daytime%.log
 set arch=x64&(if "%PROCESSOR_ARCHITECTURE%"=="x86" if not defined PROCESSOR_ARCHITEW6432 set arch=x86)
 set SystemUser=%~dp0superUser_%arch%.exe -w -c
 powershell "Set-ExecutionPolicy Unrestricted" | break
+set "PS=powershell -NoLogo -NoProfile -NonInteractive -InputFormat None -ExecutionPolicy Bypass -Command"
 set autoChoose=30
-set keySelY="Задача будет запущена автоматически через %autoChoose% секунд. [Y:Запуск / N:Отмена]"
-set keySelN="Задача будет пропущена автоматически через %autoChoose% секунд. [Y:Запуск / N:Отмена]"
+set keySelY="Задача будет запущена автоматически через %autoChoose% секунд. [Y:Выполнить / N:Пропустить]"
+set keySelN="Задача будет пропущена автоматически через %autoChoose% секунд. [Y:Выполнить / N:Пропустить]"
 cls
-rem #########################################################################################################################################################################################################################
-set title=MegaTweaksPack for Highest Performance %version%
-set version=v0.8 by TheDoctor
+:: #########################################################################################################################################################################################################################
+set title=MegaTweaksPack for Highest Performance v0.9 by TheDoctor
 title %title%
 @echo %clr%[42m %title% %clr%[0m
 @echo *** %title% *** 1>> %logfile%
@@ -48,52 +75,78 @@ timeout /t 5 /nobreak | break
 %~dp0ExitExplorer.exe
 call :kill "explorer.exe"
 echo.
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36mСоздание точки восстановления. Пожалуйста, подождите...%clr%[92m
 @echo Создание точки восстановления. Пожалуйста, подождите... 1>> %logfile%
 set timerStart=!time!
 %SystemUser% reg.exe load "HKU\.DEFAULT" "%HomeDrive%\Users\Default\NTUSER.DAT" 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "SystemRestorePointCreationFrequency" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "SystemRestorePointCreationFrequency" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableConfig" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableSR" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\SystemRestore" /v "DisableConfig" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\SystemRestore" /v "DisableSR" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 sc config srservice start=auto 1>> %logfile% 2>>&1
-powershell "$SysDrive = $env:SystemDrive; Enable-ComputerRestore $SysDrive" 1>> %logfile% 2>>&1
-cmd.exe /c "vssadmin Resize ShadowStorage /For=C: /On=C: /MaxSize=10GB" 1>> %logfile% 2>>&1
-::powershell "Checkpoint-Computer -Description 'Установлен MegaTweakPack - %date%' -RestorePointType 'MODIFY_SETTINGS'" 1>> %logfile% 2>>&1
+%PS% "$SysDrive = $env:SystemDrive; Enable-ComputerRestore $SysDrive" 1>> %logfile% 2>>&1
+%SystemRoot%\system32\cmd.exe /c "vssadmin Resize ShadowStorage /For=C: /On=C: /MaxSize=10GB" 1>> %logfile% 2>>&1
+%PS% "Checkpoint-Computer -Description 'Установлен MegaTweakPack - %date%' -RestorePointType 'MODIFY_SETTINGS'" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
-@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo.
-rem #########################################################################################################################################################################################################################
-@echo %clr%[36mВыполнить обслуживание ОС? ^(это может занять ~40 минут^)%clr%[92m
+:: #########################################################################################################################################################################################################################
+@echo %clr%[36mВыполнить обслуживание ОС? ^(это может занять примерно 1 час^)%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
 	echo.
 	@echo %clr%[36mВыполнение обслуживания ОС. Пожалуйста, подождите...%clr%[92m
 	@echo Выполнение обслуживания ОС. Пожалуйста, подождите... 1>> %logfile%
 	set timerStart=!time!
-	powershell -ExecutionPolicy Bypass -file "%~dp0OutdatedDrivers.ps1" -wa SilentlyContinue 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\ngen.exe update /force /queue 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\ngen.exe update /force /queue 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\ngen.exe executequeueditems 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\ngen.exe executequeueditems 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\ngen.exe update /force /queue 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\ngen.exe update /force /queue 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\ngen.exe executequeueditems 1>> %logfile% 2>>&1
-	::%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\ngen.exe executequeueditems 1>> %logfile% 2>>&1
-	::dism /online /Cleanup-Image /StartComponentCleanup /ResetBase /RestoreHealth 1>> %logfile% 2>>&1
+	%PS% "%~dp0OutdatedDrivers.ps1" -wa SilentlyContinue 1>> %logfile% 2>>&1
 	sfc /scannow 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\ngen.exe update /force /queue 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\ngen.exe update /force /queue 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\ngen.exe executequeueditems 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\ngen.exe executequeueditems 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\ngen.exe update /force /queue 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\ngen.exe update /force /queue 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\ngen.exe executequeueditems 1>> %logfile% 2>>&1
+	%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\ngen.exe executequeueditems 1>> %logfile% 2>>&1
+	dism /online /Cleanup-Image /ScanHealth 1>> %logfile% 2>>&1
+	dism /online /Cleanup-Image /RestoreHealth 1>> %logfile% 2>>&1
+	dism /online /Cleanup-Image /SpSuperseded 1>> %logfile% 2>>&1
+	dism /Cleanup-Mountpoints 1>> %logfile% 2>>&1
+	sfc /scannow 1>> %logfile% 2>>&1
+	:: echo Y|chkdsk %HomeDrive% /f 1>> %logfile% 2>>&1
+	wmic recoveros get autoreboot 1>> %logfile% 2>>&1
+	wmic recoveros set autoreboot=false 1>> %logfile% 2>>&1
+	wmic recoveros get autoreboot 1>> %logfile% 2>>&1
+	wmic recoveros get DebugInfoType 1>> %logfile% 2>>&1
+	wmic recoveros set DebugInfoType=7 1>> %logfile% 2>>&1
+	wmic recoveros get DebugInfoType 1>> %logfile% 2>>&1
+	wmic pagefile list /format:list 1>> %logfile% 2>>&1
+	wmic Computersystem where name="%ComputerName%" get AutomaticManagedPagefile 1>> %logfile% 2>>&1
+	wmic Computersystem where name="%ComputerName%" set AutomaticManagedPagefile=True 1>> %logfile% 2>>&1
+	wmic Computersystem where name="%ComputerName%" get AutomaticManagedPagefile 1>> %logfile% 2>>&1
+	bcdedit /enum {badmemory} 1>> %logfile% 2>>&1
+	net stop WerSvc 1>> %logfile% 2>>&1
+	net stop TrustedInstaller 1>> %logfile% 2>>&1
+	net stop WaaaSMedicSVC 1>> %logfile% 2>>&1
+	net stop wuauserv 1>> %logfile% 2>>&1
+	net stop bits 1>> %logfile% 2>>&1
+	del /f /q /s "%HomeDrive%\*.log" 1>> %logfile% 2>>&1
+	del /f /q /s "%HomeDrive%\*.tmp" 1>> %logfile% 2>>&1
+	del /f /q /s "%HomeDrive%\*.chk" 1>> %logfile% 2>>&1
+	del /f /q /s "%HomeDrive%\*.dmp" 1>> %logfile% 2>>&1
+	del /f /q /s "%HomeDrive%\*._mp" 1>> %logfile% 2>>&1
+	del /f /q /s "%HomeDrive%\*.err" 1>> %logfile% 2>>&1
 	del /f /q /s "%HomeDrive%\$Recycle.Bin\S-1-5*\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%ProgramData%\Microsoft\Network\Downloader\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%ProgramData%\Microsoft\SmsRouter\MessageStore\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%ProgramData%\Microsoft\Windows\Containers\Dumps\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%ProgramData%\Microsoft\Windows\WER\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%ProgramData%\NVIDIA\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%ProgramData%\NVIDIA\*.log_backup1" 1>> %logfile% 2>>&1
-	del /f /q /s "%ProgramData%\NVIDIA Corporation\*.log" 1>> %logfile% 2>>&1
+	for /d %%i in (%ProgramData%\Microsoft\Windows\WER\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
+	del /f /q "%ProgramData%\NVIDIA\*.log_backup1" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Microsoft\CLR_v2.0\UsageLogs\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Microsoft\CLR_v4.0\UsageLogs\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Microsoft\CLR_v4.0_32\UsageLogs\*" 1>> %logfile% 2>>&1
@@ -104,54 +157,64 @@ if !errorlevel!==1 (
 	del /f /q /s "%LocalAppdata%\Microsoft\Internet Explorer\CacheStorage\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Microsoft\Internet Explorer\Indexed DB\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Microsoft\Terminal Server Client\Cache\*" 1>> %logfile% 2>>&1
+	for /d %%i in (%LocalAppdata%\Microsoft\Internet Explorer\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
+	del /f /q "%LocalAppdata%\Microsoft\Windows\History\desktop.ini" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Microsoft\Windows\INetCache\*" 1>> %logfile% 2>>&1
+	for /d %%i in (%LocalAppdata%\Microsoft\Windows\INetCache\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Microsoft\Windows\WebCache\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%LocalAppdata%\Microsoft\Windows\History\desktop.ini" 1>> %logfile% 2>>&1
+	del /f /q /s "%LocalAppdata%\Microsoft\Windows\WER\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\SquirrelTemp\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Temp\*" 1>> %logfile% 2>>&1
+	for /d %%i in (%LocalAppdata%\Temp\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%LocalAppdata%\Windows\WebCache\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%Appdata%\Macromedia\Flash Player\macromedia.com\support\flashplayer\sys\settings.sol" 1>> %logfile% 2>>&1
-	del /f /q /s "%Appdata%\Microsoft\Windows\Recent\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%UserProfile%\MicrosoftEdgeBackups" 1>> %logfile% 2>>&1
+	del /f /q "%Appdata%\Macromedia\Flash Player\macromedia.com\support\flashplayer\sys\settings.sol" 1>> %logfile% 2>>&1
+	del /f /q /s "%Appdata%\Microsoft\Windows\Recent\AutomaticDestinations\*" 1>> %logfile% 2>>&1
+	del /f /q /s "%Appdata%\Microsoft\Windows\Recent\CustomDestinations\*" 1>> %logfile% 2>>&1
+	del /f /q /s "%Appdata%\Microsoft\Office\Recent\*" 1>> %logfile% 2>>&1
+	del /f /q /s "%UserProfile%\AppData\LocalLow\Microsoft\Internet Explorer\DOMStore\*" 1>> %logfile% 2>>&1
+	del /f /q /s "%UserProfile%\MicrosoftEdgeBackups\*" 1>> %logfile% 2>>&1
+	for /d %%i in (%UserProfile%\MicrosoftEdgeBackups\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\Installer\$PatchCache$\Managed\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\debug\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\INF\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\Logs\*" 1>> %logfile% 2>>&1
-	call :acl_folders "%SystemRoot%\Logs\waasmedic"
-	%SystemUser% del /f /q /s "%SystemRoot%\Logs\waasmedic\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\Panther\*.log" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\Temp\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\security\logs\*.log" 1>> %logfile% 2>>&1
+	for /d %%i in (%SystemRoot%\Temp\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\ServiceProfiles\LocalService\AppData\Local\Temp\*" 1>> %logfile% 2>>&1
+	for /d %%i in (%SystemRoot%\ServiceProfiles\LocalService\AppData\Local\Temp\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\ServiceProfiles\NetworkService\AppData\Local\Temp\*" 1>> %logfile% 2>>&1
+	del /f /q /s "%SystemRoot%\Logs\*" 1>> %logfile% 2>>&1
+	for /d %%i in (%SystemRoot%\Logs\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\SoftwareDistribution\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\System32\catroot2\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\System32\catroot2\*.chk" 1>> %logfile% 2>>&1
+	for /d %%i in (%SystemRoot%\SoftwareDistribution\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
+	del /f /q /s "%SystemRoot%\System32\DriverStore\Temp\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\System32\GroupPolicy\*" 1>> %logfile% 2>>&1
+	for /d %%i in (%SystemRoot%\System32\GroupPolicy\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\System32\LogFiles\*" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\System32\MsDtc\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\System32\sru\*.log" 1>> %logfile% 2>>&1
-	del /f /q /s "%SystemRoot%\System32\sru\*.chk" 1>> %logfile% 2>>&1
+	for /d %%i in (%SystemRoot%\System32\LogFiles\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\System32\config\systemprofile\AppData\Local\Microsoft\CLR_v4.0\UsageLogs\*" 1>> %logfile% 2>>&1
 	del /f /q /s "%SystemRoot%\System32\config\systemprofile\AppData\Local\Microsoft\Windows\WebCache\*" 1>> %logfile% 2>>&1
-	reg delete "HKCR\DesktopBackground\Shell\UWTSettings" /f 1>> %logfile% 2>>&1
-	powershell "Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options' -Name * -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
-	for /f "tokens=* delims=" %%l in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" /s /v "StateFlags0001"^|FindStr HKEY_') do (reg add "%%l" /v "StateFlags0001" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1)
+	reg delete "HKCU\DesktopBackground\Shell\UWTSettings" /f 1>> %logfile% 2>>&1
+	reg delete "HKCU\SOFTWARE\Microsoft\Terminal Server Client\Default" /va /f 1>> %logfile% 2>>&1
+	reg delete "HKCU\SOFTWARE\Microsoft\Terminal Server Client\Servers" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Microsoft\Terminal Server Client\Servers" 1>> %logfile% 2>>&1
+	attrib -s -h "%UserProfile%\Documents\Default.rdp" 1>> %logfile% 2>>&1
+	del /f /q "%UserProfile%\Documents\Default.rdp" 1>> %logfile% 2>>&1
+	%PS% "Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options' -Name * -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
+	for /f "tokens=* delims=" %%i in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" /s /v "StateFlags0001"^|FindStr HKEY_') do (reg add "%%i" /v "StateFlags0001" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1)
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\DownloadsFolder" /v "StateFlags0001" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-	cleanmgr sagerun:1 1>> %logfile% 2>>&1
+	nircmdc elevate %SystemRoot%\system32\cmd.exe /c cleanmgr /sageset:1 & cleanmgr /sagerun:1 1>> %logfile% 2>>&1
 	%~dp0\..\Cleanmgr+\Cleanmgr+.exe /nowindow 1>> %logfile% 2>>&1
 	for /f "tokens=* delims=" %%i in ('wevtutil el') do (wevtutil cl "%%i" 1>> %logfile% 2>>&1)
+	net start TrustedInstaller 1>> %logfile% 2>>&1
+	net start bits 1>> %logfile% 2>>&1
+	net start wuauserv 1>> %logfile% 2>>&1
+	net start WaaaSMedicSVC 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
-	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
+	@echo ОК %clr%[93m[%clr%[91m!hours!%clr%[0m часов%clr%[93m %clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 	timeout /t 3 /nobreak | break
 )
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Загрузка %clr%[0m
 @echo Загрузка 1>> %logfile%
@@ -190,7 +253,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Память %clr%[0m
 @echo Память 1>> %logfile%
@@ -253,7 +316,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Устройства и оборудование %clr%[0m
 @echo Устройства и оборудование 1>> %logfile%
@@ -284,7 +347,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Процессоры и контроллеры APIC %clr%[0m
 @echo Процессоры и контроллеры APIC 1>> %logfile%
@@ -358,6 +421,8 @@ echo. 1>> %logfile%
 @echo Отключить принудительное шифрование федеральных стандартов обработки информации (FIPS). 1>> %logfile%
 set timerStart=!time!
 bcdedit /set forcefipscrypto No 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "FipsAlgorithmPolicy" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -371,7 +436,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Слой абстрагирования оборудования (HAL) и ядра (KERNEL) %clr%[0m
 @echo Слой абстрагирования оборудования (HAL) и ядра (KERNEL) 1>> %logfile%
@@ -428,7 +493,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m VESA, PCI, VGA и TPM %clr%[0m
 @echo VESA, PCI, VGA и TPM 1>> %logfile%
@@ -473,7 +538,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Драйверы %clr%[0m
 @echo Драйверы 1>> %logfile%
@@ -518,7 +583,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Экраны ошибок %clr%[0m
 @echo Экраны ошибок 1>> %logfile%
@@ -541,7 +606,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Отладка и логирование %clr%[0m
 @echo Отладка и логирование 1>> %logfile%
@@ -595,7 +660,7 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Настройки низкоуровневой оболочки %clr%[0m
 @echo Настройки низкоуровневой оболочки 1>> %logfile%
@@ -662,13 +727,13 @@ call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Отображение %clr%[0m
 @echo Отображение 1>> %logfile%
 echo ••••••••••••
 echo •••••••••••• 1>> %logfile%
-@echo %clr%[36m Скрыть экран приветствия при входе в систему.%clr%[92m %clr%[7;31mПримечание:%clr%[0m%clr%[36m%clr%[92m работает только в редакциях Education и Enterprise.
+@echo %clr%[91m 1)%clr%[36m Скрыть экран приветствия при входе в систему.%clr%[92m %clr%[7;31mПримечание:%clr%[0m%clr%[36m%clr%[92m работает только в редакциях Education и Enterprise.
 @echo Скрыть экран приветствия при входе в систему. Примечание: работает только в редакциях Education и Enterprise. 1>> %logfile%
 set timerStart=!time!
 xcopy %~dp0Rexplorer.exe %SystemRoot% /c /q /h /r /y 1>> %logfile% 2>>&1
@@ -686,7 +751,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 @echo. 1>> %logfile%
-@echo %clr%[91m 1)%clr%[36m Отключить использование анимации при запуске.%clr%[92m
+@echo %clr%[91m 2)%clr%[36m Отключить использование анимации при запуске.%clr%[92m
 @echo Отключить использование анимации при запуске. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set bootux Disabled 1>> %logfile% 2>>&1
@@ -699,7 +764,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 7)%clr%[36m Отключить логотип загрузки.%clr%[92m
+@echo %clr%[91m 3)%clr%[36m Отключить логотип загрузки.%clr%[92m
 @echo Отключить логотип загрузки. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set {globalsettings} custom:16000067 true 1>> %logfile% 2>>&1
@@ -707,7 +772,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 8)%clr%[36m Отключить круг анимации загрузки.%clr%[92m
+@echo %clr%[91m 4)%clr%[36m Отключить круг анимации загрузки.%clr%[92m
 @echo Отключить круг анимации загрузки. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set {globalsettings} custom:16000069 true 1>> %logfile% 2>>&1
@@ -715,7 +780,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 9)%clr%[36m Отключить загрузочные сообщения.%clr%[92m
+@echo %clr%[91m 5)%clr%[36m Отключить загрузочные сообщения.%clr%[92m
 @echo Отключить загрузочные сообщения. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set {globalsettings} custom:16000068 true 1>> %logfile% 2>>&1
@@ -723,7 +788,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 @echo. 1>> %logfile%
-@echo %clr%[91m 2)%clr%[36m Время перехода анимации при возобновлении.%clr%[92m
+@echo %clr%[91m 6)%clr%[36m Время перехода анимации при возобновлении.%clr%[92m
 @echo Время перехода анимации при возобновлении. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set bootuxtransitiontime 1 1>> %logfile% 2>>&1
@@ -731,7 +796,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 3)%clr%[36m Включить отображение растрового изображения с высоким разрешением вместо отображения экрана загрузки Windows и анимации.%clr%[92m
+@echo %clr%[91m 7)%clr%[36m Включить отображение растрового изображения с высоким разрешением вместо отображения экрана загрузки Windows и анимации.%clr%[92m
 @echo Включить отображение растрового изображения с высоким разрешением вместо отображения экрана загрузки Windows и анимации. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set quietboot Yes 1>> %logfile% 2>>&1
@@ -739,7 +804,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 4)%clr%[36m Включить текстовый режим загрузки через клавишу F8 (возможные значения: Legacy, Standard).%clr%[92m
+@echo %clr%[91m 8)%clr%[36m Включить текстовый режим загрузки через клавишу F8 (возможные значения: Legacy, Standard).%clr%[92m
 @echo Включить текстовый режим загрузки через клавишу F8 (возможные значения: Legacy, Standard). 1>> %logfile%
 set timerStart=!time!
 bcdedit /set bootmenupolicy Legacy 1>> %logfile% 2>>&1
@@ -747,7 +812,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 5)%clr%[36m Отключить графический режим для загрузочных приложений.%clr%[92m
+@echo %clr%[91m 9)%clr%[36m Отключить графический режим для загрузочных приложений.%clr%[92m
 @echo Отключить графический режим для загрузочных приложений. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set graphicsmodedisabled Yes 1>> %logfile% 2>>&1
@@ -755,7 +820,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 6)%clr%[36m Разрешить приложениям загрузки использовать максимальный графический режим, предоставляемый встроенным ПО.%clr%[92m
+@echo %clr%[91m 10)%clr%[36m Разрешить приложениям загрузки использовать максимальный графический режим, предоставляемый встроенным ПО.%clr%[92m
 @echo Разрешить приложениям загрузки использовать максимальный графический режим, предоставляемый встроенным ПО. 1>> %logfile%
 set timerStart=!time!
 bcdedit /set highestmode Yes 1>> %logfile% 2>>&1
@@ -765,7 +830,7 @@ call :timer
 echo. 1>> %logfile%
 timeout /t 3 /nobreak | break
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Windows Defender, SmartScreen и Edge %clr%[0m
 @echo Windows Defender, SmartScreen и Edge 1>> %logfile%
@@ -777,15 +842,12 @@ if !errorlevel!==1 (
 	echo Отключение Windows Defender Antivirus. Пожалуйста подождите...
 	@echo Отключение Windows Defender Antivirus. Пожалуйста подождите... 1>> %logfile%
 	set timerStart=!time!
-	powershell "Set-MpPreference -EnableControlledFolderAccess Disabled -wa SilentlyContinue" 1>> %logfile% 2>>&1
-	powershell "Set-MpPreference -EnableNetworkProtection Disabled -wa SilentlyContinue" 1>> %logfile% 2>>&1
-	powershell "Set-MpPreference -PUAProtection Disabled -wa SilentlyContinue" 1>> %logfile% 2>>&1
 	setx /m MP_FORCE_USE_SANDBOX 0 1>> %logfile% 2>>&1
 	bcdedit /set disableelamdrivers Yes 1>> %logfile% 2>>&1
 	%SystemUser% net stop WinDefend 1>> %logfile% 2>>&1
 	%SystemUser% net stop WdNisSvc 1>> %logfile% 2>>&1
-	powershell "Disable-WindowsOptionalFeature -Online -FeatureName Windows-Defender-ApplicationGuard -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-	powershell "Disable-WindowsOptionalFeature -Online -FeatureName Windows-Defender-Default-Definitions -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+	%PS% "Disable-WindowsOptionalFeature -Online -FeatureName Windows-Defender-ApplicationGuard -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+	%PS% "Disable-WindowsOptionalFeature -Online -FeatureName Windows-Defender-Default-Definitions -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 	call :acl_registry "SOFTWARE\Microsoft\Windows Defender"
 	call :acl_registry "SOFTWARE\Microsoft\Windows Defender\Features"
 	call :acl_registry "SOFTWARE\Microsoft\Windows Defender\Real-Time Protection"
@@ -794,6 +856,9 @@ if !errorlevel!==1 (
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender" /v "ProductStatus" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender" /v "PUAProtection" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Windows Defender Exploit Guard\Network Protection" /v "EnableNetworkProtection" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access" /v "EnableControlledFolderAccess" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Features" /v "TamperProtection" /t REG_DWORD /d "4" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Real-Time Protection" /v "DisableAntiSpywareRealtimeProtection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Real-Time Protection" /v "DisableRealtimeMonitoring" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -805,7 +870,6 @@ if !errorlevel!==1 (
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Scan" /v "ScheduleDay" /t REG_DWORD /d "8" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\UX Configuration" /v "AllowNonAdminFunctionality" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\UX Configuration" /v "DisablePrivacyMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	if "%arch%"=="x64" (
 	call :acl_registry "SOFTWARE\Wow6432Node\Microsoft\Windows Defender"
 	call :acl_registry "SOFTWARE\Wow6432Node\Microsoft\Windows Defender\Real-Time Protection"
@@ -814,6 +878,9 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender" /v "ProductStatus" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender" /v "PUAProtection" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender\Windows Defender Exploit Guard\Network Protection" /v "EnableNetworkProtection" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access" /v "EnableControlledFolderAccess" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender\Real-Time Protection" /v "DisableAntiSpywareRealtimeProtection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender\Real-Time Protection" /v "DisableRealtimeMonitoring" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows Defender\Scan" /v "AutomaticallyCleanAfterScan" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -823,6 +890,8 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows Defender" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows Defender\Spynet" /v "DisableBlockAtFirstSeen" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows Defender\Spynet" /v "LocalSettingOverrideSpynetReporting" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows Defender\Spynet" /v "SpynetReporting" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows Defender\Spynet" /v "SubmitSamplesConsent" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg delete "HKLM\SOFTWARE\Classes\Wow6432Node\CLSID\{195B4D07-3DE2-4744-BBF2-D90121AE785B}" /f 1>> %logfile% 2>>&1
@@ -843,13 +912,24 @@ if !errorlevel!==1 (
 	call :acl_registry "SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection"
 	call :acl_registry "SOFTWARE\Policies\Microsoft\Windows Defender\Reporting"
 	call :acl_registry "SOFTWARE\Policies\Microsoft\Windows Defender\Spynet"
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "PUAProtection" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" /v "CheckForSignaturesBeforeRunningScan" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" /v "DisableHeuristics" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableBehaviorMonitoring" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableIOAVProtection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableOnAccessProtection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableRealtimeMonitoring" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Reporting" /v "DisableEnhancedNotifications" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Reporting" /v "DisableGenericRePorts" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "DisableBlockAtFirstSeen" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "LocalSettingOverrideSpynetReporting" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "SpynetReporting" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "SubmitSamplesConsent" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\Network Protection" /v "EnableNetworkProtection" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access" /v "EnableControlledFolderAccess" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	call :disable_svc_hard WinDefend
 	call :disable_svc_hard WdBoot
 	call :disable_svc_hard WdFilter
@@ -861,10 +941,6 @@ if !errorlevel!==1 (
 	reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DefenderApiLogger" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DefenderAuditLogger" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray" /v "HideSystray" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-	reg delete "HKLM\SOFTWARE\Classes\CLSID\{09A47860-11B0-4DA5-AFA5-26D86198A780}" /f 1>> %logfile% 2>>&1
-	reg delete "HKLM\SOFTWARE\Classes\CLSID\{09A47860-11B0-4DA5-AFA5-26D86198A780}\InprocServer32" /v "" /f 1>> %logfile% 2>>&1
-	reg delete "HKLM\SOFTWARE\Classes\CLSID\{D8559EB9-20C0-410E-BEDA-7ED416AECC2A}" /f 1>> %logfile% 2>>&1
-	reg delete "HKLM\SOFTWARE\Classes\CLSID\{13F6A0B6-57AF-4BA7-ACAA-614BC89CA9D8}" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg delete "HKLM\SOFTWARE\Classes\CLSID\{195B4D07-3DE2-4744-BBF2-D90121AE785B}" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg delete "HKLM\SOFTWARE\Classes\CLSID\{2781761E-28E0-4109-99FE-B9D127C57AFE}" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg delete "HKLM\SOFTWARE\Classes\CLSID\{361290c0-cb1b-49ae-9f3e-ba1cbe5dab35}" /f 1>> %logfile% 2>>&1
@@ -879,7 +955,6 @@ if !errorlevel!==1 (
 	reg delete "HKLM\SOFTWARE\Classes\CLSID\{94F35585-C5D7-4D95-BA71-A745AE76E2E2}" /f 1>> %logfile% 2>>&1
 	reg delete "HKLM\SOFTWARE\Classes\CLSID\{FDA74D11-C4A6-4577-9F73-D7CA8586E10D}" /f 1>> %logfile% 2>>&1
 	reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "WindowsDefender" /f 1>> %logfile% 2>>&1
-	call :disable_svc Sense
 	call :disable_task "\Microsoft\Windows\Windows Defender\Windows Defender Cache Maintenance"
 	call :disable_task "\Microsoft\Windows\Windows Defender\Windows Defender Cleanup"
 	call :disable_task "\Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan"
@@ -890,10 +965,10 @@ if !errorlevel!==1 (
 	rmdir /s /q "%ProgramData%\Microsoft\Windows Defender Advanced Threat Protection" 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
-	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 	@echo. 1>> %logfile%
 )
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[91m 2)%clr%[36m Отключить SmartScreen?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
@@ -903,6 +978,7 @@ if !errorlevel!==1 (
 	reg add "HKCU\SOFTWARE\Microsoft\Windows Security Health\State" /v "AccountProtection_MicrosoftAccount_Disconnected" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKCU\SOFTWARE\Microsoft\Windows Security Health\State" /v "AppAndBrowser_EdgeSmartScreenOff" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "EnableSmartScreen" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "ShellSmartScreenLevel" /t REG_SZ /d "Warn" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\PhishingFilter" /v "EnabledV9" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKCU\SOFTWARE\Microsoft\Internet Explorer\PhishingFilter" /v "EnabledV9" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Storage\microsoft.microsoftedge_8wekyb3d8bbwe\MicrosoftEdge\PhishingFilter" /v "EnabledV9" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -923,8 +999,8 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	@echo. 1>> %logfile%
 )
-rem #########################################################################################################################################################################################################################
-@echo %clr%[91m 2)%clr%[36m Удалить Microsoft Edge?%clr%[92m
+:: #########################################################################################################################################################################################################################
+@echo %clr%[91m 3)%clr%[36m Удалить Microsoft Edge?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
 	echo Удаление Microsoft Edge. Пожалуйста подождите...
@@ -938,9 +1014,9 @@ if !errorlevel!==1 (
 	call :kill "MicrosoftEdgeSH.exe"
 	reg add "HKLM\SOFTWARE\Microsoft" /v "DoNotUpdateToEdgeWithChromium" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	reg add "HKCU\SOFTWARE\Microsoft\Edge" /v "SmartScreenEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\Software\Policies\Microsoft\Edge" /v "BackgroundModeEnabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-	if "%arch%"=="x64" ( powershell "Start-Process -FilePath ${env:ProgramFiles(x86)}\Microsoft\Edge\Application\*\Installer\setup.exe -ArgumentList '-uninstall -system-level -verbose-logging -force-uninstall' -NoNewWindow" 1>> %logfile% 2>>&1 )
-	if "%arch%"=="x86" ( powershell "Start-Process -FilePath ${env:ProgramFiles}\Microsoft\Edge\Application\*\Installer\setup.exe -ArgumentList '-uninstall -system-level -verbose-logging -force-uninstall' -NoNewWindow" 1>> %logfile% 2>>&1 )
+	reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "BackgroundModeEnabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+	if "%arch%"=="x64" ( %PS% "Start-Process -FilePath ${env:ProgramFiles(x86)}\Microsoft\Edge\Application\*\Installer\setup.exe -ArgumentList '-uninstall -system-level -verbose-logging -force-uninstall' -NoNewWindow" 1>> %logfile% 2>>&1 )
+	if "%arch%"=="x86" ( %PS% "Start-Process -FilePath ${env:ProgramFiles}\Microsoft\Edge\Application\*\Installer\setup.exe -ArgumentList '-uninstall -system-level -verbose-logging -force-uninstall' -NoNewWindow" 1>> %logfile% 2>>&1 )
 	call :acl_folders "%SystemRoot%\SystemApps\Microsoft.MicrosoftEdge_8wekyb3d8bbwe"
 	rmdir /s /q "%SystemRoot%\SystemApps\Microsoft.MicrosoftEdge_8wekyb3d8bbwe" 1>> %logfile% 2>>&1
 	call :acl_folders "%ProgramFiles%\Microsoft\Edge"
@@ -964,8 +1040,8 @@ if !errorlevel!==1 (
 	del /f /q "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk" 1>> %logfile% 2>>&1
 	del /f /q "%HomePath%\Desktop\Microsoft Edge.lnk" 1>> %logfile% 2>>&1
 	del /f /q "%Public%\Desktop\Microsoft Edge.lnk" 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /v "FavoritesResolve" /t REG_BINARY /d "320300004c0000000114020000000000c00000000000004683008000200000007a93da2ef73cd7012858df2ef73cd701d353b05b0eded401970100000000000001000000000000000000000000000000a0013a001f80c827341f105c1042aa032ee45287d668260001002600efbe120000004c43b521f73cd7016845cc2ef73cd701cff5dc2ef73cd701140056003100000000009d52296711005461736b42617200400009000400efbe9d5229679d5229672e000000d6050200000001000000000000000000000000000000311581005400610073006b00420061007200000016000e01320097010000734e7c25200046494c4545587e312e4c4e4b00007c0009000400efbe9d5229679d5229672e000000d70502000000010000000000000000005200000000002dfa9b00460069006c00650020004500780070006c006f007200650072002e006c006e006b00000040007300680065006c006c00330032002e0064006c006c002c002d003200320030003600370000001c00220000001e00efbe02005500730065007200500069006e006e006500640000001c00120000002b00efbe2858df2ef73cd7011c00420000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f00770073002e004500780070006c006f0072006500720000001c0000009b0000001c000000010000001c0000002d000000000000009a0000001100000003000000e06219521000000000433a5c55736572735c746573745c417070446174615c526f616d696e675c4d6963726f736f66745c496e7465726e6574204578706c6f7265725c517569636b204c61756e63685c557365722050696e6e65645c5461736b4261725c46696c65204578706c6f7265722e6c6e6b000060000000030000a058000000000000006465736b746f702d3668747071376600cc9e61a2a4954f42ac398d38cb60e68887f9b542e9a8eb11a0e000155d125200cc9e61a2a4954f42ac398d38cb60e68887f9b542e9a8eb11a0e000155d12520045000000090000a03900000031535053b1166d44ad8d7048a748402ea43d788c1d00000068000000004800000030462c212f54464e88b6c5eb1d5292d00000000000000000000000009d0600004c0000000114020000000000c00000000000004681008000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000004b0614001f809bd434424502f34db7803893943456e1350600009d05415050538b0508000300000000000000520200003153505355284c9f799f394ba8d0e1d42de1d5f35d00000011000000001f000000250000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650000000000110000000e0000000013000000010000008500000015000000001f0000003a0000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b0079006200330064003800620062007700650000006500000005000000001f000000290000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b00790062003300640038006200620077006500210041007000700000000000c10000000f000000001f0000005700000043003a005c00500072006f006700720061006d002000460069006c00650073005c00570069006e0064006f007700730041007000700073005c004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b00790062003300640038006200620077006500000000001d00000020000000004800000078d85872f8786e42a43f34253f188061000000008a020000315350534d0bd48669903c44819a2a54090dccec550000000c000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004d0065006400540069006c0065002e0070006e006700000000005500000002000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004100700070004c006900730074002e0070006e00670000000000590000000f000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f0072006500420061006400670065004c006f0067006f002e0070006e00670000000000550000000d000000001f000000220000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065005700690064006500540069006c0065002e0070006e0067000000110000000400000000130000000078d7ff5900000013000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004c006100720067006500540069006c0065002e0070006e0067000000000011000000050000000013000000ffffffff110000000e0000000013000000a5040000310000000b000000001f000000100000004d006900630072006f0073006f00660074002000530074006f007200650000005900000014000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f007200650053006d0061006c006c00540069006c0065002e0070006e00670000000000000000003100000031535053b1166d44ad8d7048a748402ea43d788c150000006400000000150000004200000000000000000000004d0000003153505330f125b7ef471a10a5f102608c9eebac310000000a000000001f000000100000004d006900630072006f0073006f00660074002000530074006f00720065000000000000002d00000031535053b377ed0d14c66c45ae5b285b38d7b01b110000000700000000130000000000000000000000000000000000220000001e00efbe02005500730065007200500069006e006e00650064000000a305120000002b00efbee21ce42ef73cd701a3055e0000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650021004100700070000000a305000000000000" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /v "Favorites" /t REG_BINARY /d "00a40100003a001f80c827341f105c1042aa032ee45287d668260001002600efbe120000004c43b521f73cd7016845cc2ef73cd701cff5dc2ef73cd701140056003100000000009d52296711005461736b42617200400009000400efbe9d5229679d5229672e000000d6050200000001000000000000000000000000000000311581005400610073006b00420061007200000016001201320097010000734e7c25200046494c4545587e312e4c4e4b00007c0009000400efbe9d5229679d5229672e000000d70502000000010000000000000000005200000000002dfa9b00460069006c00650020004500780070006c006f007200650072002e006c006e006b00000040007300680065006c006c00330032002e0064006c006c002c002d003200320030003600370000001c00120000002b00efbe2858df2ef73cd7011c00420000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f00770073002e004500780070006c006f0072006500720000001c00260000001e00efbe0200530079007300740065006d00500069006e006e006500640000001c000000004f06000014001f809bd434424502f34db7803893943456e1390600009d05415050538b0508000300000000000000520200003153505355284c9f799f394ba8d0e1d42de1d5f35d00000011000000001f000000250000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650000000000110000000e0000000013000000010000008500000015000000001f0000003a0000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b0079006200330064003800620062007700650000006500000005000000001f000000290000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b00790062003300640038006200620077006500210041007000700000000000c10000000f000000001f0000005700000043003a005c00500072006f006700720061006d002000460069006c00650073005c00570069006e0064006f007700730041007000700073005c004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b00790062003300640038006200620077006500000000001d00000020000000004800000078d85872f8786e42a43f34253f188061000000008a020000315350534d0bd48669903c44819a2a54090dccec550000000c000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004d0065006400540069006c0065002e0070006e006700000000005500000002000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004100700070004c006900730074002e0070006e00670000000000590000000f000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f0072006500420061006400670065004c006f0067006f002e0070006e00670000000000550000000d000000001f000000220000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065005700690064006500540069006c0065002e0070006e0067000000110000000400000000130000000078d7ff5900000013000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004c006100720067006500540069006c0065002e0070006e0067000000000011000000050000000013000000ffffffff110000000e0000000013000000a5040000310000000b000000001f000000100000004d006900630072006f0073006f00660074002000530074006f007200650000005900000014000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f007200650053006d0061006c006c00540069006c0065002e0070006e00670000000000000000003100000031535053b1166d44ad8d7048a748402ea43d788c150000006400000000150000004200000000000000000000004d0000003153505330f125b7ef471a10a5f102608c9eebac310000000a000000001f000000100000004d006900630072006f0073006f00660074002000530074006f00720065000000000000002d00000031535053b377ed0d14c66c45ae5b285b38d7b01b110000000700000000130000000000000000000000000000000000120000002b00efbee21ce42ef73cd701a3055e0000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650021004100700070000000a305260000001e00efbe0200530079007300740065006d00500069006e006e00650064000000a3050000ff" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /v "FavoritesResolve" /t REG_BINARY /d "320300004c0000000114020000000000c00000000000004683008000200000007a93da2ef73cd7012858df2ef73cd701d353b05b0eded401970100000000000001000000000000000000000000000000a0013a001f80c827341f105c1042aa032ee45287d668260001002600efbe120000004c43b521f73cd7016845cc2ef73cd701cff5dc2ef73cd701140056003100000000009d52296711005461736b42617200400009000400efbe9d5229679d5229672e000000d6050200000001000000000000000000000000000000311581005400610073006b00420061007200000016000e01320097010000734e7c25200046494c4545587e312e4c4e4b00007c0009000400efbe9d5229679d5229672e000000d70502000000010000000000000000005200000000002dfa9b00460069006c00650020004500780070006c006f007200650072002e006c006e006b00000040007300680065006c006c00330032002e0064006c006c002c002d003200320030003600370000001c00220000001e00efbe02005500730065007200500069006e006e006500640000001c00120000002b00efbe2858df2ef73cd7011c00420000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f00770073002e004500780070006c006f0072006500720000001c0000009b0000001c000000010000001c0000002d000000000000009a0000001100000003000000e06219521000000000433a5c55736572735c746573745c417070446174615c526f616d696e675c4d6963726f736f66745c496e7465726e6574204578706c6f7265725c517569636b204c61756e63685c557365722050696e6e65645c5461736b4261725c46696c65204578706c6f7265722e6c6e6b000060000000030000a058000000000000006465736b746f702d3668747071376600cc9e61a2a4954f42ac398d38cb60e68887f9b542e9a8eb11a0e000155d125200cc9e61a2a4954f42ac398d38cb60e68887f9b542e9a8eb11a0e000155d12520045000000090000a03900000031535053b1166d44ad8d7048a748402ea43d788c1d00000068000000004800000030462c212f54464e88b6c5eb1d5292d00000000000000000000000009d0600004c0000000114020000000000c00000000000004681008000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000004b0614001f809bd434424502f34db7803893943456e1350600009d05415050538b0508000300000000000000520200003153505355284c9f799f394ba8d0e1d42de1d5f35d00000011000000001f000000250000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650000000000110000000e0000000013000000010000008500000015000000001f0000003a0000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b0079006200330064003800620062007700650000006500000005000000001f000000290000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b00790062003300640038006200620077006500210041007000700000000000c10000000f000000001f0000005700000043003a005c00500072006f006700720061006d002000460069006c00650073005c00570069006e0064006f007700730041007000700073005c004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b00790062003300640038006200620077006500000000001d00000020000000004800000078d85872f8786e42a43f34253f188061000000008a020000315350534d0bd48669903c44819a2a54090dccec550000000c000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004d0065006400540069006c0065002e0070006e006700000000005500000002000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004100700070004c006900730074002e0070006e00670000000000590000000f000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f0072006500420061006400670065004c006f0067006f002e0070006e00670000000000550000000d000000001f000000220000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065005700690064006500540069006c0065002e0070006e0067000000110000000400000000130000000078d7ff5900000013000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004c006100720067006500540069006c0065002e0070006e0067000000000011000000050000000013000000ffffffff110000000e0000000013000000a5040000310000000b000000001f000000100000004d006900630072006f0073006f00660074002000530074006f007200650000005900000014000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f007200650053006d0061006c006c00540069006c0065002e0070006e00670000000000000000003100000031535053b1166d44ad8d7048a748402ea43d788c150000006400000000150000004200000000000000000000004d0000003153505330f125b7ef471a10a5f102608c9eebac310000000a000000001f000000100000004d006900630072006f0073006f00660074002000530074006f00720065000000000000002d00000031535053b377ed0d14c66c45ae5b285b38d7b01b110000000700000000130000000000000000000000000000000000220000001e00efbe02005500730065007200500069006e006e00650064000000a305120000002b00efbee21ce42ef73cd701a3055e0000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650021004100700070000000a305000000000000" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /v "Favorites" /t REG_BINARY /d "00a40100003a001f80c827341f105c1042aa032ee45287d668260001002600efbe120000004c43b521f73cd7016845cc2ef73cd701cff5dc2ef73cd701140056003100000000009d52296711005461736b42617200400009000400efbe9d5229679d5229672e000000d6050200000001000000000000000000000000000000311581005400610073006b00420061007200000016001201320097010000734e7c25200046494c4545587e312e4c4e4b00007c0009000400efbe9d5229679d5229672e000000d70502000000010000000000000000005200000000002dfa9b00460069006c00650020004500780070006c006f007200650072002e006c006e006b00000040007300680065006c006c00330032002e0064006c006c002c002d003200320030003600370000001c00120000002b00efbe2858df2ef73cd7011c00420000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f00770073002e004500780070006c006f0072006500720000001c00260000001e00efbe0200530079007300740065006d00500069006e006e006500640000001c000000004f06000014001f809bd434424502f34db7803893943456e1390600009d05415050538b0508000300000000000000520200003153505355284c9f799f394ba8d0e1d42de1d5f35d00000011000000001f000000250000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650000000000110000000e0000000013000000010000008500000015000000001f0000003a0000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b0079006200330064003800620062007700650000006500000005000000001f000000290000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b00790062003300640038006200620077006500210041007000700000000000c10000000f000000001f0000005700000043003a005c00500072006f006700720061006d002000460069006c00650073005c00570069006e0064006f007700730041007000700073005c004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b00790062003300640038006200620077006500000000001d00000020000000004800000078d85872f8786e42a43f34253f188061000000008a020000315350534d0bd48669903c44819a2a54090dccec550000000c000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004d0065006400540069006c0065002e0070006e006700000000005500000002000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004100700070004c006900730074002e0070006e00670000000000590000000f000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f0072006500420061006400670065004c006f0067006f002e0070006e00670000000000550000000d000000001f000000220000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065005700690064006500540069006c0065002e0070006e0067000000110000000400000000130000000078d7ff5900000013000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004c006100720067006500540069006c0065002e0070006e0067000000000011000000050000000013000000ffffffff110000000e0000000013000000a5040000310000000b000000001f000000100000004d006900630072006f0073006f00660074002000530074006f007200650000005900000014000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f007200650053006d0061006c006c00540069006c0065002e0070006e00670000000000000000003100000031535053b1166d44ad8d7048a748402ea43d788c150000006400000000150000004200000000000000000000004d0000003153505330f125b7ef471a10a5f102608c9eebac310000000a000000001f000000100000004d006900630072006f0073006f00660074002000530074006f00720065000000000000002d00000031535053b377ed0d14c66c45ae5b285b38d7b01b110000000700000000130000000000000000000000000000000000120000002b00efbee21ce42ef73cd701a3055e0000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650021004100700070000000a305260000001e00efbe0200530079007300740065006d00500069006e006e00650064000000a3050000ff" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MicrosoftEdge.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\msedge.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
 	set timerEnd=!time!
@@ -974,8 +1050,8 @@ if !errorlevel!==1 (
 	timeout /t 3 /nobreak | break
 	@echo. 1>> %logfile%
 )
-rem #########################################################################################################################################################################################################################
-@echo %clr%[36m Отключить Центр обновления Windows?%clr%[92m
+:: #########################################################################################################################################################################################################################
+@echo %clr%[91m 4)%clr%[36m Отключить Центр обновления Windows?%clr%[92m
 choice /c yn /n /t %autoChoose% /d n /m %keySelN%
 if !errorlevel!==1 (
 	echo Отключение Центра обновления Windows. Пожалуйста подождите...
@@ -996,8 +1072,8 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	@echo. 1>> %logfile%
 )
-rem #########################################################################################################################################################################################################################
-@echo %clr%[36m Отключить службы печати и сканирования?%clr%[92m
+:: #########################################################################################################################################################################################################################
+@echo %clr%[91m 5)%clr%[36m Отключить службы печати и сканирования?%clr%[92m
 choice /c yn /n /t %autoChoose% /d n /m %keySelN%
 if !errorlevel!==1 (
 	echo Отключение служб печати и сканирования. Пожалуйста подождите...
@@ -1010,7 +1086,7 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	@echo. 1>> %logfile%
 )
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo. 1>> %logfile%
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Отчеты и реклама %clr%[0m
@@ -1022,9 +1098,19 @@ echo •••••••••••• 1>> %logfile%
 set timerStart=!time!
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" /v "AutoApproveOSDumps" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" /v "DontSendAdditionalData" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" /v "DontSendAdditionalData" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" /v "Disabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v "Disabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v "Disabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PCHealth\ErrorReporting" /v "DoReport" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PCHealth\ErrorReporting" /v "ForceQueueMode" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PCHealth\ErrorReporting\DW" /v "DWNoExternalURL" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PCHealth\ErrorReporting\DW" /v "DWNoFileCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PCHealth\ErrorReporting\DW" /v "DWNoSecondLevelCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PCHealth\HelpSvc" /v "Headlines" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PCHealth\HelpSvc" /v "MicrosoftKBSearch" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Settings" /v "DisableSendGenericDriverNotFoundToWER" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Settings" /v "DisableSendRequestAdditionalSoftwareToWER" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1045,6 +1131,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindo
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsConsumerFeatures" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "DisableTelemetryOptInChangeNotification" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "DoNotShowFeedbackNotifications" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "LimitEnhancedDiagnosticDataWindowsAnalytics" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace" /v "AllowSuggestedAppsInWindowsInkWorkspace" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -1077,7 +1164,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" 
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353694Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353696Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353698Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-powershell "Set-ItemProperty -Path (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount\*windows.data.placeholdertilecollection\Current').PSPath -Name 'Data' -Type Binary -Value (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount\*windows.data.placeholdertilecollection\Current').Data[0..15] -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Set-ItemProperty -Path (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount\*windows.data.placeholdertilecollection\Current').PSPath -Name 'Data' -Type Binary -Value (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\CloudStore\Store\Cache\DefaultAccount\*windows.data.placeholdertilecollection\Current').Data[0..15] -wa SilentlyContinue" 1>> %logfile% 2>>&1
 sc stop ShellExperienceHost 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -1104,7 +1191,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Сетевая оптимизация %clr%[0m
 @echo Сетевая оптимизация 1>> %logfile%
@@ -1137,19 +1224,20 @@ reg add "HKLM\SYSTEM\CurrentControlSet\services\Tcpip\Parameters" /v "Qualifying
 reg add "HKLM\SYSTEM\CurrentControlSet\services\Tcpip\Parameters" /v "SynAttackProtect" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\services\Tcpip\Parameters" /v "TcpCreateAndConnectTcbRateLimitDepth" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\services\Tcpip\Parameters" /v "TcpMaxDataRetransmissions" /t REG_DWORD /d "5" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "EnableICMPRedirect" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "EnablePMTUDiscovery" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "GlobalMaxTcpWindowSize" /t REG_DWORD /d "5840" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpWindowSize" /t REG_DWORD /d "5840" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "MaxConnectionsPerServer" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "EnablePMTUBHDetect" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "SackOpts" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpMaxDupAcks" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "UseDelayedAcceptance" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "MaxSockAddrLength" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "MinSockAddrLength" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\services\TCPIP6\Parameters" /v "DisabledComponents" /t REG_DWORD /d "4294967295" /f 1>> %logfile% 2>>&1
-call :disable_svc iphlpsvc
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "EnableICMPRedirect" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "EnablePMTUDiscovery" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "GlobalMaxTcpWindowSize" /t REG_DWORD /d "5840" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpWindowSize" /t REG_DWORD /d "5840" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "MaxConnectionsPerServer" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "EnablePMTUBHDetect" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "SackOpts" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpMaxDupAcks" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "UseDelayedAcceptance" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "MaxSockAddrLength" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "MinSockAddrLength" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\services\TCPIP6\Parameters" /v "DisabledComponents" /t REG_DWORD /d "255" /f 1>> %logfile% 2>>&1
+:: Служба поддержки интернет-протокола помогает извлекать и изменять параметры конфигурации сети.
+:: call :disable_svc iphlpsvc
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\WinSock2\Parameters" /v "Ws2_32NumHandleBuckets" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RemoteComputer\NameSpace\{D6277990-4C6A-11CF-8D87-00AA0060F5BF}" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Psched" /v "MaxOutstandingSends" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -1168,7 +1256,7 @@ netsh int tcp set global timestamps=disabled 1>> %logfile% 2>>&1
 netsh int isatap set state disable 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
-@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
 @echo %clr%[91m 2)%clr%[36m Отключить эвристику масштабирования, чтобы предотвратить изменение уровня автонастройки окна.%clr%[92m
 @echo Отключить эвристику масштабирования, чтобы предотвратить изменение уровня автонастройки окна. 1>> %logfile%
@@ -1205,7 +1293,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 6)%clr%[36m Установить начальное окно перегрузки на 10.%clr%[92m
 @echo Установить начальное окно перегрузки на 10. 1>> %logfile%
 set timerStart=!time!
-powershell "Set-NetTCPSetting -SettingName InternetCustom -InitialCongestionWindow 10" 1>> %logfile% 2>>&1
+%PS% "Set-NetTCPSetting -SettingName InternetCustom -InitialCongestionWindow 10" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1222,7 +1310,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 8)%clr%[36m Установить максимальный блок передачи (MTU) до 1492.%clr%[92m
 @echo Установить максимальный блок передачи (MTU) до 1492. 1>> %logfile%
 set timerStart=!time!
-powershell "foreach ($adp in (Get-NetAdapter | Where {$_.Name -Match 'Ethernet'}).Name){netsh interface ipv4 set interface Ethernet mtu=1492 store=persistent}" 1>> %logfile% 2>>&1
+%PS% "foreach ($adp in (Get-NetAdapter | Where {$_.Name -Match 'Ethernet'}).Name){netsh interface ipv4 set interface Ethernet mtu=1492 store=persistent}" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1246,7 +1334,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 11)%clr%[36m Установить время ожидания TCP до 30.%clr%[92m
 @echo Установить время ожидания TCP до 30. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpTimedWaitDelay" /t REG_DWORD /d "30" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpTimedWaitDelay" /t REG_DWORD /d "30" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1254,10 +1342,10 @@ echo. 1>> %logfile%
 @echo %clr%[91m 12)%clr%[36m Установить приоритеты разрешения хоста.%clr%[92m
 @echo Установить приоритеты разрешения хоста. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "LocalPriority" /t REG_DWORD /d "4" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "HostsPriority" /t REG_DWORD /d "5" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "DnsPriority" /t REG_DWORD /d "6" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "NetbtPriority" /t REG_DWORD /d "7" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "LocalPriority" /t REG_DWORD /d "4" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "HostsPriority" /t REG_DWORD /d "5" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "DnsPriority" /t REG_DWORD /d "6" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\ServiceProvider" /v "NetbtPriority" /t REG_DWORD /d "7" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1343,26 +1431,39 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
-@echo %clr%[91m 21)%clr%[36m Запретить доступ в интернет для DRM Windows Media.%clr%[92m
-@echo Запретить доступ в интернет для DRM Windows Media. 1>> %logfile%
+@echo %clr%[91m 21)%clr%[36m Запретить получение метаданных и общий доступ в проигрывателе Windows Media.%clr%[92m
+@echo Запретить получение метаданных и общий доступ в проигрывателе Windows Media. 1>> %logfile%
 set timerStart=!time!
+reg add "HKCU\SOFTWARE\Policies\Microsoft\WindowsMediaPlayer" /v "PreventCDDVDMetadataRetrieval" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\WindowsMediaPlayer" /v "PreventMusicFileMetadataRetrieval" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\WindowsMediaPlayer" /v "PreventRadioPresetsRetrieval" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\WMDRM" /v "DisableOnline" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-set timerEnd=!time!
-call :timer
-@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
-echo. 1>> %logfile%
-@echo %clr%[91m 22)%clr%[36m Отключить общий доступ к проигрывателю Windows Media.%clr%[92m
-@echo Отключить общий доступ к проигрывателю Windows Media. 1>> %logfile%
-set timerStart=!time!
 call :disable_svc WMPNetworkSvc
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 22)%clr%[36m Отключить немедленные подключения Windows для Windows Connect Now (настраивает параметры точки доступа или Wi-Fi).%clr%[92m
-@echo Отключить немедленные подключения Windows для Windows Connect Now (настраивает параметры точки доступа или Wi-Fi). 1>> %logfile%
+@echo %clr%[91m 22)%clr%[36m Отключить мастер подключения Windows Connect Now (настраивает параметры точки доступа или Wi-Fi).%clr%[92m
+@echo Отключить мастер подключения Windows Connect Now (настраивает параметры точки доступа или Wi-Fi). 1>> %logfile%
 set timerStart=!time!
 call :disable_svc wcncsvc
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars" /v "DisableFlashConfigRegistrar" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars" /v "DisableInBand802DOT11Registrar" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars" /v "DisableUPnPRegistrar" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars" /v "DisableWPDRegistrar" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\Registrars" /v "EnableRegistrars" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\UI" /v "DisableWcnUi" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\WCN\UI" /v "DisableWcnUi" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[91m 22)%clr%[36m Исправить проблему с замыливанием некоторых окон при масштабировании экрана в х125.%clr%[92m
+@echo Исправить проблему с замыливанием некоторых окон при масштабировании экрана в х125. 1>> %logfile%
+set timerStart=!time!
+reg add "HKCU\Control Panel\Desktop" /v "DpiScalingVer" /t REG_DWORD /d "1018" /f 1>> %logfile% 2>>&1
+reg add "HKCU\Control Panel\Desktop" /v "Win8DpiScaling" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\Control Panel\Desktop" /v "LogPixels" /t REG_DWORD /d "78" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1383,8 +1484,8 @@ echo. 1>> %logfile%
 set timerStart=!time!
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v "DisableLocation" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v "DisableLocationScripting" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v "DisableWindowsLocationProvider" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v "DisableSensors" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v "DisableWindowsLocationProvider" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 call :disable_svc lfsvc
 set timerEnd=!time!
 call :timer
@@ -1398,11 +1499,30 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 24)%clr%[36m Отключить тестирование сетевого подключения.%clr%[92m
-@echo Отключить тестирование сетевого подключения. 1>> %logfile%
+@echo %clr%[91m 24)%clr%[36m Дополнительная настройка Firefox NCSI (индикатора состояния сетевого подключения).%clr%[92m
+@echo Дополнительная настройка Firefox NCSI (индикатора состояния сетевого подключения). 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "NoActiveProbe" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "DisablePassivePolling" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+:: reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "NoActiveProbe" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+:: reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "DisablePassivePolling" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "NoActiveProbe" /f 1>> %logfile% 2>>&1
+reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "DisablePassivePolling" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveDnsProbeContent" /t REG_SZ /d "8.8.8.8" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveDnsProbeContentV6" /t REG_SZ /d "2001:4860:4860::8888" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveDnsProbeHost" /t REG_SZ /d "dns.google" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveDnsProbeHostV6" /t REG_SZ /d "dns.google" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveWebProbeContent" /t REG_SZ /d "Microsoft Connect Test" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveWebProbeContentV6" /t REG_SZ /d "Microsoft Connect Test" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveWebProbeHost" /t REG_SZ /d "www.msftconnecttest.com" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveWebProbeHostV6" /t REG_SZ /d "ipv6.msftconnecttest.com" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveWebProbePath" /t REG_SZ /d "connecttest.txt" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "ActiveWebProbePathV6" /t REG_SZ /d "connecttest.txt" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "CaptivePortalTimer" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "CaptivePortalTimerBackOffIncrementsInSeconds" /t REG_DWORD /d "5" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "CaptivePortalTimerMaxInSeconds" /t REG_DWORD /d "30" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "EnableActiveProbing" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "PassivePollPeriod" /t REG_DWORD /d "120" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "StaleThreshold" /t REG_DWORD /d "30" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" /v "WebTimeout" /t REG_DWORD /d "35" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1424,7 +1544,7 @@ call :acl_registry "SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Def
 %SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\DefaultMediaCost" /v "Default" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\DefaultMediaCost" /v "Ethernet" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %SystemUser% reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\DefaultMediaCost" /v "WiFi" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-powershell "Get-ChildItem 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DusmSvc\Profiles\*\*' | Set-ItemProperty -Name UserCost -Value 0" 1>> %logfile% 2>>&1
+%PS% "Get-ChildItem 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DusmSvc\Profiles\*\*' | Set-ItemProperty -Name UserCost -Value 0" 1>> %logfile% 2>>&1
 call :disable_svc DusmSvc
 set timerEnd=!time!
 call :timer
@@ -1443,7 +1563,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 28)%clr%[36m Отключить привязку QoS.%clr%[92m
 @echo Отключить привязку QoS. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterBinding -Name * -ComponentID "ms_pacer" -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterBinding -Name * -ComponentID "ms_pacer" -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1451,7 +1571,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 29)%clr%[36m Отключить использование пакетов QoS.%clr%[92m
 @echo Отключить использование пакетов QoS. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterQos -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterQos -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 call :disable_svc Psched
 call :disable_svc QWAVEdrv
 set timerEnd=!time!
@@ -1471,7 +1591,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 31)%clr%[36m Отключить захват NDIS.%clr%[92m
 @echo Отключить захват NDIS. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterBinding -Name * -ComponentID "ms_ndiscap" -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterBinding -Name * -ComponentID "ms_ndiscap" -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1479,7 +1599,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 32)%clr%[36m Отключить протокол обнаружения локальных каналов (LLDP).%clr%[92m
 @echo Отключить протокол обнаружения локальных каналов (LLDP). 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterBinding -Name * -ComponentID "ms_lldp" -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterBinding -Name * -ComponentID "ms_lldp" -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1487,8 +1607,8 @@ echo. 1>> %logfile%
 @echo %clr%[91m 33)%clr%[36m Отключить обнаружение топологии локального канала (LLTD).%clr%[92m
 @echo Отключить обнаружение топологии локального канала (LLTD). 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterBinding -Name * -ComponentID "ms_lltdio" -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Disable-NetAdapterBinding -Name * -ComponentID "ms_rspndr" -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterBinding -Name * -ComponentID "ms_lltdio" -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterBinding -Name * -ComponentID "ms_rspndr" -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1496,7 +1616,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 34)%clr%[36m Отключить сетевой стек IPv6.%clr%[92m
 @echo Отключить сетевой стек IPv6. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterBinding -Name * -ComponentID "ms_tcpip6" -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterBinding -Name * -ComponentID "ms_tcpip6" -wa SilentlyContinue" 1>> %logfile% 2>>&1
 call :disable_svc Tcpip6
 call :disable_svc wanarpv6
 set timerEnd=!time!
@@ -1506,7 +1626,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 35)%clr%[36m Отключить механизм, позволяющий передавать IPv6-пакеты через IPv4-сети.%clr%[92m
 @echo Отключить механизм, позволяющий передавать IPv6-пакеты через IPv4-сети. 1>> %logfile%
 set timerStart=!time!
-powershell "Set-Net6to4Configuration -State Disabled -AutoSharing Disabled -RelayState Disabled -RelayName '6to4.ipv6.microsoft.com' -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Set-Net6to4Configuration -State Disabled -AutoSharing Disabled -RelayState Disabled -RelayName '6to4.ipv6.microsoft.com' -wa SilentlyContinue" 1>> %logfile% 2>>&1
 netsh int 6to4 set state state=disabled undoonstop=disabled 1>> %logfile% 2>>&1
 netsh int 6to4 set routing routing=disabled sitelocals=disabled 1>> %logfile% 2>>&1
 set timerEnd=!time!
@@ -1529,8 +1649,8 @@ echo. 1>> %logfile%
 set timerStart=!time!
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS" /v "Tcp Autotuning Level" /t REG_SZ /d "Experimental" /f 1>> %logfile% 2>>&1
 netsh int tcp set global autotuning=experimental 1>> %logfile% 2>>&1
-%SystemUser% powershell "Set-NetTCPSetting -SettingName InternetCustom -CongestionProvider CTCP" 1>> %logfile% 2>>&1
-%SystemUser% powershell "Set-NetTCPSetting -SettingName Internet -CongestionProvider CTCP" 1>> %logfile% 2>>&1
+%SystemUser% %PS% "Set-NetTCPSetting -SettingName InternetCustom -CongestionProvider CTCP" 1>> %logfile% 2>>&1
+%SystemUser% %PS% "Set-NetTCPSetting -SettingName Internet -CongestionProvider CTCP" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1538,7 +1658,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 38)%clr%[36m Настроить медленный старт TCP для отправки 10 кадров.%clr%[92m
 @echo Настроить медленный старт TCP для отправки 10 кадров. 1>> %logfile%
 set timerStart=!time!
-powershell "Set-NetTCPSetting -SettingName Internet -InitialCongestionWindow 10" 1>> %logfile% 2>>&1
+%PS% "Set-NetTCPSetting -SettingName Internet -InitialCongestionWindow 10" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1546,7 +1666,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 39)%clr%[36m Отключить разгрузку TCP Chimney.%clr%[92m
 @echo Отключить разгрузку TCP Chimney. 1>> %logfile%
 set timerStart=!time!
-powershell "Set-NetOffloadGlobalSetting -Chimney Disabled" 1>> %logfile% 2>>&1
+%PS% "Set-NetOffloadGlobalSetting -Chimney Disabled" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1554,7 +1674,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 40)%clr%[36m Отключить объединение пакетов. Полезно для игр и Wi-Fi.%clr%[92m
 @echo Отключить объединение пакетов. Полезно для игр и Wi-Fi. 1>> %logfile%
 set timerStart=!time!
-powershell "Set-NetOffloadGlobalSetting -PacketCoalescingFilter disabled" 1>> %logfile% 2>>&1
+%PS% "Set-NetOffloadGlobalSetting -PacketCoalescingFilter disabled" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1563,7 +1683,7 @@ echo. 1>> %logfile%
 @echo Отключить объединение сегментов приема. 1>> %logfile%
 set timerStart=!time!
 netsh int tcp set global rsc=disabled 1>> %logfile% 2>>&1
-powershell "Set-NetOffloadGlobalSetting -ReceiveSegmentCoalescing disabled" 1>> %logfile% 2>>&1
+%PS% "Set-NetOffloadGlobalSetting -ReceiveSegmentCoalescing disabled" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1571,7 +1691,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 42)%clr%[36m Включить отправку и получение Weak Host и настройка IP политик.%clr%[92m
 @echo Включить отправку и получение Weak Host и настройка IP политик. 1>> %logfile%
 set timerStart=!time!
-powershell "Get-NetAdapter -Name * -IncludeHidden | Set-NetIPInterface -WeakHostSend Enabled -WeakHostReceive Enabled -RetransmitTimeMs 0 -Forwarding Disabled -EcnMarking Disabled -AdvertiseDefaultRoute Disabled -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Get-NetAdapter -Name * -IncludeHidden | Set-NetIPInterface -WeakHostSend Enabled -WeakHostReceive Enabled -RetransmitTimeMs 0 -Forwarding Disabled -EcnMarking Disabled -AdvertiseDefaultRoute Disabled -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1603,7 +1723,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 46)%clr%[36m Выставить минимальное RTO.%clr%[92m
 @echo Выставить минимальное RTO. 1>> %logfile%
 set timerStart=!time!
-powershell "Set-NetTCPSetting -SettingName InternetCustom -MinRto 300" 1>> %logfile% 2>>&1
+%PS% "Set-NetTCPSetting -SettingName InternetCustom -MinRto 300" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1699,7 +1819,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 58)%clr%[36m Отключить управление питанием сетевого адаптера.%clr%[92m
 @echo Отключить управление питанием сетевого адаптера. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterPowerManagement -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterPowerManagement -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1707,7 +1827,8 @@ echo. 1>> %logfile%
 @echo %clr%[91m 59)%clr%[36m Включить разгрузку контрольной суммы.%clr%[92m
 @echo Включить разгрузку контрольной суммы. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-NetAdapterChecksumOffload -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-NetAdapterChecksumOffload -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+:: %PS% "Set-NetAdapterAdvancedProperty (Get-NetAdapter | where status -eq 'Up' | select -ExpandProperty name) -DisplayName 'IPv4 Checksum Offload' -DisplayValue 'Disabled' –NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1715,7 +1836,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 60)%clr%[36m Отключить разгрузку задачи инкапсулированного пакета.%clr%[92m
 @echo Отключить разгрузку задачи инкапсулированного пакета. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterEncapsulatedPacketTaskOffload -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterEncapsulatedPacketTaskOffload -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1723,7 +1844,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 61)%clr%[36m Включить разгрузку IPsec.%clr%[92m
 @echo Включить разгрузку IPsec. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-NetAdapterIPsecOffload -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-NetAdapterIPsecOffload -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1731,7 +1852,7 @@ echo. 1>> %logfile% 2>>&1
 @echo %clr%[91m 62)%clr%[36m Отключить разгрузку большой отправки.%clr%[92m
 @echo Отключить разгрузку большой отправки. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterLso -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterLso -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1739,7 +1860,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 63)%clr%[36m Включить PacketDirect для снижения джиттера.%clr%[92m
 @echo Включить PacketDirect для снижения джиттера. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-NetAdapterPacketDirect -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-NetAdapterPacketDirect -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1747,7 +1868,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 64)%clr%[36m Отключить объединение сегментов приема.%clr%[92m
 @echo Отключить объединение сегментов приема. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-NetAdapterRsc -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-NetAdapterRsc -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1755,7 +1876,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 65)%clr%[36m Включить масштабирование сегментов приема.%clr%[92m
 @echo Включить масштабирование сегментов приема. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-NetAdapterRss -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-NetAdapterRss -Name * -wa SilentlyContinue" 1>> %logfile% 2>>&1
 netsh interface tcp set heuristics wsh=enabled 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -1777,7 +1898,7 @@ if /i %browsersFound%==1 (
 		call :kill "msedge.exe"
 		call :kill "vivaldi.exe"
 		call :kill "thunderbird.exe"
-		::start "" rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 4351 (очистка истории и кэша паролей браузера)
+		:: start "" rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 4351 (очистка истории и кэша паролей браузера)
 		regsvr32 /s actxprxy 1>> %logfile% 2>>&1
 		del /f /q /s "%LocalAppdata%\Microsoft\Windows\WebCache\*" 1>> %logfile% 2>>&1
 		del /f /q /s "%LocalAppData%\Microsoft\Intern*" 1>> %logfile% 2>>&1
@@ -1786,7 +1907,7 @@ if /i %browsersFound%==1 (
 		rmdir /q /s "%LocalAppData%\Microsoft\Windows\History" 1>> %logfile% 2>>&1
 		del /f /q /s "%LocalAppData%\Microsoft\Windows\Tempor*" 1>> %logfile% 2>>&1
 		rmdir /q /s "%LocalAppData%\Microsoft\Windows\Tempor*" 1>> %logfile% 2>>&1
-		cmd.exe /c "%~dp0\..\Tools\speedyfox.exe "/Firefox:all" "/Chrome:all" "/Chromium:all" "/Microsoft Edge:all" "/Skype:all" "/Thunderbird:all" "/Opera:all" "/Vivaldi:all" "/Yandex Browser:all" "/Epic Privacy Browser:all" "/Cyberfox:all" "/FossaMail:all" "/Viber ^for Windows:all" "/Slimjet Browser:all" "/Pale Moon:all" "/SeaMonkey:all"" 1>> %logfile% 2>>&1
+		%SystemRoot%\system32\cmd.exe /c "%~dp0\..\Tools\speedyfox.exe "/Firefox:all" "/Chrome:all" "/Chromium:all" "/Microsoft Edge:all" "/Skype:all" "/Thunderbird:all" "/Opera:all" "/Vivaldi:all" "/Yandex Browser:all" "/Epic Privacy Browser:all" "/Cyberfox:all" "/FossaMail:all" "/Viber ^for Windows:all" "/Slimjet Browser:all" "/Pale Moon:all" "/SeaMonkey:all"" 1>> %logfile% 2>>&1
 		set browsersFound=0
 	)
 )
@@ -1798,12 +1919,34 @@ reg add "HKLM\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Main\FeatureContr
 )
 reg add "HKLM\SOFTWARE\Microsoft\Internet Explorer\Main" /v "DNSPreresolution" /t REG_DWORD /d "8" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Internet Explorer\Main" /v "Use_Async_DNS" /t REG_SZ /d "yes" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Internet Explorer\Main" /v "EnablePreBinding" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Internet Explorer\Main" /v "EnablePreBinding" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Internet Explorer\Safety\PrivacIE" /v "DisableInPrivateBlocking" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Internet Explorer\Safety\PrivacIE" /v "StartMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v "DnsCacheEnabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v "DnsCacheEntries" /t REG_DWORD /d "200" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v "DnsCacheTimeout" /t REG_DWORD /d "15180" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings" /v "DnsCacheEnabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings" /v "DnsCacheEntries" /t REG_DWORD /d "200" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings" /v "DnsCacheTimeout" /t REG_DWORD /d "15180" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer" /v "AllowServicePoweredQSA" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\ContinuousBrowsing" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\DomainSuggestion" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Internet Explorer\Geolocation" /v "PolicyDisableGeolocation" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Main" /v "AutoSearch" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Main" /v "DEPOff" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Main" /v "DoNotTrack" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Main" /v "Isolation64Bit" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Main\WindowsSearch" /v "EnabledScopes" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\PrefetchPrerender" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Privacy" /v "ClearBrowsingHistoryOnExit" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Restrictions" /v "NoCrashDetection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Internet Explorer\Safety\PrivacIE" /v "DisableLogging" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Safety\PrivacIE" /v "DisableLogging" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\SearchScopes" /v "TopResult" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Internet Explorer\SQM" /v "DisableCustomerImprovementProgram" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\SQM" /v "DisableCustomerImprovementProgram" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Suggested Sites" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Internet Settings" /v "EnableHTTP2" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Internet Settings" /v "CallLegacyWCMPolicies" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Internet Settings" /v "EnableSSL3Fallback" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Internet Settings" /v "PreventIgnoreCertErrors" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Ext" /v "DisableAddonLoadTimePerformanceNotifications" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Ext" /v "NoFirsttimeprompt" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\firefox.exe" /v "UseLargePages" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -1812,7 +1955,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Настройка уведомлений %clr%[0m
 @echo Настройка уведомлений 1>> %logfile%
@@ -1821,34 +1964,34 @@ echo •••••••••••• 1>> %logfile%
 @echo %clr%[91m 1) %clr%[36m Отключить уведомления Центра действий.%clr%[92m
 @echo Отключить уведомления Центра действий. 1>> %logfile%
 set timerStart=!time!
-::reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v "ToastEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-::reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v "NoToastApplicationNotification" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+:: reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v "ToastEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+:: reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v "NoToastApplicationNotification" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v "NoToastApplicationNotificationOnLockScreen" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.BioEnrollment_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.LockApp_cw5n1h2txyewy!WindowsDefaultLockScreen" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.MicrosoftEdgeDevToolsClient_8wekyb3d8bbwe!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.Cortana_cw5n1h2txyewy!CortanaUI" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.Cortana_cw5n1h2txyewy!RemindersShareTargetApp" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.LanguageComponentsInstaller" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.NarratorQuickStart_8wekyb3d8bbwe!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.ParentalControls" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.ParentalControls_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.PeopleExperienceHost_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.SecHealthUI_cw5n1h2txyewy!SecHealthUI" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.Defender.SecurityCenter" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.AutoPlay" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.Calling" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.Calling.SystemAlertNotification" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.Compat" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.FodHelper" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.HelloFace" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.LocationManager" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.MobilityExperience" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.SecurityAndMaintenance" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.SecurityCenter" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.WindowsTip" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.WindowsUpdate.Notification" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.BioEnrollment_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.LockApp_cw5n1h2txyewy!WindowsDefaultLockScreen" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.MicrosoftEdgeDevToolsClient_8wekyb3d8bbwe!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.Cortana_cw5n1h2txyewy!CortanaUI" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.Cortana_cw5n1h2txyewy!RemindersShareTargetApp" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.LanguageComponentsInstaller" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.NarratorQuickStart_8wekyb3d8bbwe!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.ParentalControls" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.ParentalControls_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.PeopleExperienceHost_cw5n1h2txyewy!App" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.Windows.SecHealthUI_cw5n1h2txyewy!SecHealthUI" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.Defender.SecurityCenter" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.AutoPlay" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.Calling" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.Calling.SystemAlertNotification" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.Compat" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.FodHelper" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.HelloFace" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.LocationManager" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.MobilityExperience" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.SecurityAndMaintenance" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.SecurityCenter" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.WindowsTip" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings\Windows.SystemToast.WindowsUpdate.Notification" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1884,7 +2027,7 @@ echo. 1>> %logfile%
 set timerStart=!time!
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\QuietHours" /v "Enabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\QuietHours" /v "AllowCalls" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Notifications\Data" /v "0D83063EA3BF1C75" /t REG_BINARY /d "3F00000000000000" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Notifications\Data" /v "0D83063EA3BF1C75" /t REG_BINARY /d "3F00000000000000" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1913,7 +2056,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Настройка обновления Windows%clr%[0m
 @echo Настройка обновления Windows 1>> %logfile%
@@ -1922,10 +2065,12 @@ echo •••••••••••• 1>> %logfile%
 @echo %clr%[91m 1) %clr%[36m Отключить обновление драйверов через Центр обновлений Windows.%clr%[92m
 @echo Отключить обновление драйверов через Центр обновлений Windows. 1>> %logfile%
 set timerStart=!time!
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Metadata" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Metadata" /v "PreventDeviceMetadataFromNetwork" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" /v "PreventDeviceMetadataFromNetwork" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Settings" /v "AllSigningEqual" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" /v "DriverUpdateWizardWuSearchEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" /v "DontSearchWindowsUpdate" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -1934,7 +2079,20 @@ reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Update" /v "Exclud
 reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\default\Update" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\default\Update\ExcludeWUDriversInQualityUpdate" /v "Value" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" /v "ExcludeWUDriversInQualityUpdate" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-rmdir /s /q "%SystemRoot%\SoftwareDistribution" 1>> %logfile% 2>>&1
+net stop wuauserv 1>> %logfile% 2>>&1
+net stop bits 1>> %logfile% 2>>&1
+del /f /q /s "%SystemRoot%\SoftwareDistribution\*" 1>> %logfile% 2>>&1
+net start bits 1>> %logfile% 2>>&1
+net start wuauserv 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Отключить автоматическое обновление драйверов (требуется для установки специфичных или устаревших драйверов для устройств).%clr%[92m
+@echo Отключить автоматическое обновление драйверов (требуется для установки специфичных или устаревших драйверов для устройств). 1>> %logfile%
+set timerStart=!time!
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions" /v "DenyDeviceIDs" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions" /v "DenyDeviceIDsRetroactive" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1942,10 +2100,10 @@ echo. 1>> %logfile%
 @echo %clr%[91m 2) %clr%[36m Разрешить получение обновлений для других продуктов Microsoft через Центр обновления Windows.%clr%[92m
 @echo Разрешить получение обновлений для других продуктов Microsoft через Центр обновления Windows. 1>> %logfile%
 set timerStart=!time!
-powershell "(New-Object -ComObject Microsoft.Update.ServiceManager).AddService2('7971f918-a847-4430-9279-4a52d1efe18d', 7, '')" 1>> %logfile% 2>>&1
+%PS% "(New-Object -ComObject Microsoft.Update.ServiceManager).AddService2('7971f918-a847-4430-9279-4a52d1efe18d', 7, '')" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
-@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
 @echo %clr%[91m 3) %clr%[36m Отключить автоматическую загрузку с Центра обновления Windows.%clr%[92m
 @echo Отключить автоматическую загрузку с Центра обновления Windows. 1>> %logfile%
@@ -1960,7 +2118,7 @@ echo. 1>> %logfile%
 @echo Отключить автоматическую загрузку обновлений приложений из Магазина. 1>> %logfile%
 set timerStart=!time!
 reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsStore\WindowsUpdate" /v "AutoDownload" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
-::reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsStore" /v "AutoDownload" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
+:: reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsStore" /v "AutoDownload" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1968,6 +2126,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 5) %clr%[36m Отключить автоматическое обновление карт.%clr%[92m
 @echo Отключить автоматическое обновление карт. 1>> %logfile%
 set timerStart=!time!
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v "AllowUntriggeredNetworkTrafficOnSettingsPage" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v "AutoDownloadAndUpdateMapData" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\Maps" /v "AutoUpdateEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 call :disable_svc MapsBroker
@@ -2001,7 +2160,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[7m%clr%[0m
 @echo %clr%[7m Разное %clr%[0m
 @echo Разное 1>> %logfile%
@@ -2096,7 +2255,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Принудительное отключение логгирования.%clr%[92m
 @echo Принудительное отключение логгирования. 1>> %logfile%
 set timerStart=!time!
@@ -2135,7 +2294,7 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\WiFiDriverIHVSessi
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\WiFiDriverIHVSessionRepro" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\WiFiSession" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\WinPhoneCritical" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-::powershell "Get-AutologgerConfig | Set-AutologgerConfig -Start 0 -InitStatus 0 -Confirm:$False -ErrorAction SilentlyContinue" 1>> %logfile% 2>>&1
+:: %PS% "Get-AutologgerConfig | Set-AutologgerConfig -Start 0 -InitStatus 0 -Confirm:$False -ErrorAction SilentlyContinue" 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WUDF" /v "LogEnable" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WUDF" /v "LogLevel" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Credssp" /v "DebugLogLevel" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -2143,7 +2302,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Применение политики для ресурсов CPU.%clr%[92m
 @echo Применение политики для ресурсов CPU. 1>> %logfile%
 set timerStart=!time!
@@ -2203,7 +2362,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Применение параметров для ускорения ОС и оптимизации 3D игр.%clr%[92m
 @echo Применение параметров для ускорения ОС и оптимизации 3D игр. 1>> %logfile%
 set timerStart=!time!
@@ -2241,8 +2400,6 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings" /v "S
 reg add "HKLM\SOFTWARE\Microsoft\OLE" /v "PageAllocatorUseSystemHeap" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\OLE" /v "PageAllocatorSystemHeapIsPrivate" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\OLE" /v "Tracing" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "FipsAlgorithmPolicy" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\GRE_Initialize" /v "DisableMetaFiles" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MaxDynamicTickDuration" /t REG_DWORD /d "500" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MaximumSharedReadyQueueSize" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -2282,7 +2439,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Применение оптимизации службы планировщика классов Multimedia для игр (MMCSS).%clr%[92m
 @echo Применение оптимизации службы планировщика классов Multimedia для игр (MMCSS). 1>> %logfile%
 set timerStart=!time!
@@ -2303,7 +2460,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Применение настроек оптимизации для SSD дисков.%clr%[92m
 @echo Применение настроек оптимизации для SSD дисков. 1>> %logfile%
 set timerStart=!time!
@@ -2332,7 +2489,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Применение настроек оптимизации электропитания.%clr%[92m
 @echo Применение настроек оптимизации электропитания. 1>> %logfile%
 set timerStart=!time!
@@ -2375,7 +2532,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отобразить все скрытые пункты в схемах управления питанием?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
@@ -2461,14 +2618,14 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отключить Game DVR, службы Xbox, Logitech Gaming и Razer Game Scanner.%clr%[92m
 @echo Отключить Game DVR, службы Xbox, Logitech Gaming и Razer Game Scanner. 1>> %logfile%
 set timerStart=!time!
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v "AudioCaptureEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v "CursorCaptureEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SYSTEM\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehaviorMode" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehavior" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKCU\System\GameConfigStore" /v "GameDVR_HonorUserFSEBehaviorMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -2496,7 +2653,7 @@ call :disable_svc XboxNetApiSvc
 call :disable_task "\Microsoft\XblGameSave\XblGameSaveTask"
 call :acl_file "%SystemRoot%\System32\GameBarPresenceWriter.exe"
 call :kill "GameBarPresenceWriter.exe"
-move "%SystemRoot%\System32\GameBarPresenceWriter.exe" "%SystemRoot%\System32\GameBarPresenceWriter.old" 1>> %logfile% 2>>&1
+%SystemUser% move "%SystemRoot%\System32\GameBarPresenceWriter.exe" "%SystemRoot%\System32\GameBarPresenceWriter.old" 1>> %logfile% 2>>&1
 call :kill "bcastdvr.exe"
 call :acl_file "%SystemRoot%\System32\bcastdvr.exe"
 move "%SystemRoot%\System32\bcastdvr.exe" "%SystemRoot%\System32\bcastdvr.old" 1>> %logfile% 2>>&1
@@ -2506,7 +2663,17 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
+@echo %clr%[36m Отключить получение информации об играх и опциях из Интернета.%clr%[92m
+@echo Отключить получение информации об играх и опциях из Интернета. 1>> %logfile%
+set timerStart=!time!
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameUX" /v "DownloadGameInfo" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameUX" /v "GameUpdateOptions" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отключить службу поиска и Cortana.%clr%[92m
 @echo Отключить службу поиска и Cortana. 1>> %logfile%
 set timerStart=!time!
@@ -2532,17 +2699,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v "CortanaEnabl
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v "DeviceHistoryEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v "HistoryViewEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" /v "State" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Microsoft\Personalization\Settings" /v "AcceptedPrivacyPolicy" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Personalization\Settings" /v "RestrictImplicitInkCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Microsoft\InputPersonalization" /v "RestrictImplicitTextCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Microsoft\InputPersonalization" /v "RestrictImplicitInkCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore" /v "HarvestContacts" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImplicitInkCollection /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImplicitTextCollection /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Input\TIPC" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v "PreventHandwritingDataSharing" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\HandwritingErrorReports" /v PreventHandwritingErrorReports /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v "AllowInputPersonalization" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowCortanaButton" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 call :remove_uwp Microsoft.549981C3F5F10
@@ -2553,7 +2710,29 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
+@echo %clr%[36m Отключить персонализацию ввода и создание отчетов.%clr%[92m
+@echo Отключить персонализацию ввода и создание отчетов. 1>> %logfile%
+set timerStart=!time!
+reg add "HKCU\SOFTWARE\Microsoft\Personalization\Settings" /v "AcceptedPrivacyPolicy" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Personalization\Settings" /v "RestrictImplicitInkCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\InputPersonalization" /v "RestrictImplicitTextCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\InputPersonalization" /v "RestrictImplicitInkCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore" /v "HarvestContacts" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\InputPersonalization" /v "RestrictImplicitInkCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\InputPersonalization" /v "RestrictImplicitTextCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v "AllowInputPersonalization" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v "RestrictImplicitInkCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v "RestrictImplicitTextCollection" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\HandwritingErrorReports" /v "PreventHandwritingErrorReports" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\HandwritingErrorReports" /v "PreventHandwritingErrorReports" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v "PreventHandwritingDataSharing" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v "PreventHandwritingDataSharing" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отключить Wi-Fi Sense (данный функционал позволяет делиться доступом к своим сетям Wi-Fi со своими контактами и автоматически подключаться к сетям друзей).%clr%[92m
 @echo Отключить Wi-Fi Sense (данный функционал позволяет делиться доступом к своим сетям Wi-Fi со своими контактами и автоматически подключаться к сетям друзей). 1>> %logfile%
 set timerStart=!time!
@@ -2561,18 +2740,18 @@ reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotRepo
 reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" /v "Value" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" /v "AutoConnectAllowedOEM" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" /v "WiFISenseAllowed" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\software\microsoft\wcmsvc\wifinetworkmanager" /v "wifisensecredshared" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\software\microsoft\wcmsvc\wifinetworkmanager" /v "wifisenseopen" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\wcmsvc\wifinetworkmanager" /v "wifisensecredshared" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\wcmsvc\wifinetworkmanager" /v "wifisenseopen" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 for /f "tokens=* delims=" %%l in ('reg query "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\features" /s ^|FindStr HKEY_') do (reg add "%%l" /v "FeatureStates" /t REG_DWORD /d "828" /f 1>> %logfile% 2>>&1)
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отключить сжатие памяти и предзагрузку приложений в ОС.%clr%[92m
 @echo Отключить сжатие памяти и предзагрузку приложений в ОС. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-MMAgent -MemoryCompression -ApplicationPreLaunch -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-MMAgent -MemoryCompression -ApplicationPreLaunch -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -2594,7 +2773,7 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "Kerne
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationOptions" /t REG_BINARY /d "22222222222222222002000000200000" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "MitigationAuditOptions" /t REG_BINARY /d "20000020202022220000000000000000" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "EnableCfg" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-powershell "foreach ($mit in (Get-Command -Name Set-ProcessMitigation).Parameters['Disable'].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $mit.ToString().Replace(' \', '\').Replace('`n\', '\') -ErrorAction SilentlyContinue}" 1>> %logfile% 2>>&1
+%PS% "foreach ($mit in (Get-Command -Name Set-ProcessMitigation).Parameters['Disable'].Attributes.ValidValues){Set-ProcessMitigation -System -Disable $mit.ToString().Replace(' \', '\').Replace('`n\', '\') -ErrorAction SilentlyContinue}" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -2602,8 +2781,8 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить память, управляемую ядром и отключить исправления Meltdown/Spectre.%clr%[92m
 @echo Включить память, управляемую ядром и отключить исправления Meltdown/Spectre. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "EnableCfg" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettings" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "EnableCfg" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettings" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettingsOverride" /t REG_DWORD /d "3" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettingsOverrideMask" /t REG_DWORD /d "3" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
@@ -2688,11 +2867,11 @@ echo. 1>> %logfile%
 @echo Предотвратить ошибки при отключении драйверов. 1>> %logfile%
 set timerStart=!time!
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Audiosrv" /v "ErrorControl" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Services\fvevol" /v "ErrorControl" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}" /v "UpperFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Control\Class\{4d36e967-e325-11ce-bfc1-08002be10318}" /v "LowerFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Control\Class\{6bdd1fc6-810f-11d0-bec7-08002be2092f}" /v "UpperFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
-reg add "HKLM\System\CurrentControlSet\Control\Class\{71a27cdd-812a-11d0-bec7-08002be2092f}" /v "LowerFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\fvevol" /v "ErrorControl" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}" /v "UpperFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e967-e325-11ce-bfc1-08002be10318}" /v "LowerFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{6bdd1fc6-810f-11d0-bec7-08002be2092f}" /v "UpperFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{71a27cdd-812a-11d0-bec7-08002be2092f}" /v "LowerFilters" /t REG_MULTI_SZ /d "" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -2740,11 +2919,12 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить помощника по совместимости программ.%clr%[92m
-@echo Отключить помощника по совместимости программ. 1>> %logfile%
+@echo %clr%[36m Отключить помощника по совместимости программ, запись шагов и сборщика инвентаризации.%clr%[92m
+@echo Отключить помощника по совместимости программ, запись шагов и сборщика инвентаризации. 1>> %logfile%
 set timerStart=!time!
 call :disable_svc PcaSvc
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v "AITEnable" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v "DisableInventory" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v "DisablePCA" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v "DisableUAR" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
@@ -2754,9 +2934,20 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить удаленного помощника.%clr%[92m
 @echo Отключить удаленного помощника. 1>> %logfile%
 set timerStart=!time!
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v "fAllowToGetHelp" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v "fAllowUnsolicited" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Remote Assistance" /v "fAllowToGetHelp" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-powershell "Get-WindowsCapability -Online | Where-Object {$_.Name -like 'App.Support.QuickAssist*'} | Remove-WindowsCapability -Online -wa SilentlyContinue" 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Remote Assistance" /v "fAllowFullControl" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+%PS% "Get-WindowsCapability -Online | Where-Object {$_.Name -like 'App.Support.QuickAssist*'} | Remove-WindowsCapability -Online -wa SilentlyContinue" 1>> %logfile% 2>>&1
 call :disable_task "\Microsoft\Windows\RemoteAssistance\RemoteAssistanceTask"
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Отключить регистрацию для управления мобильными устройствами (MDM).%clr%[92m
+@echo Отключить регистрацию для управления мобильными устройствами (MDM). 1>> %logfile%
+set timerStart=!time!
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\MDM" /v "DisableRegistration" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -2958,11 +3149,15 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить автоматическое обнаружение типа папок.%clr%[92m
-@echo Отключить автоматическое обнаружение типа папок. 1>> %logfile%
+@echo %clr%[36m Выставить тип всех папок как "Плитка".%clr%[92m
+@echo Выставить тип всех папок как "Плитка". 1>> %logfile%
 set timerStart=!time!
 reg delete "HKCU\SOFTWARE\Classes\Local Settings\SOFTWARE\Microsoft\Windows\Shell\Bags" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Classes\Local Settings\SOFTWARE\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "FolderType" /t REG_SZ /d "NotSpecified" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "WFlags" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "ShowCmd" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "HotKey" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" /v "NavBar" /t REG_BINARY /d "000000000000000000000000000000008b000000870000003153505305d5cdd59c2e1b10939708002b2cf9ae6b0000005a000000007b00360044003800420042003300440033002d0039004400380037002d0034004100390031002d0041004200350036002d003400460033003000430046004600450046004500390046007d005f0057006900640074006800000013000000580100000000000000000000" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3000,8 +3195,8 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить режим планшета.%clr%[92m
 @echo Отключить режим планшета. 1>> %logfile%
 set timerStart=!time!
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarAppsVisibleInTabletMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell" /v "ConvertibleSlateModePromptPreference" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarAppsVisibleInTabletMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ImmersiveShell" /v "ConvertibleSlateModePromptPreference" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3036,6 +3231,18 @@ set timerStart=!time!
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoRecentDocs" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoRecentDocsHistory" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "ClearRecentDocsOnExit" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Отключить онлайн-контент в проводнике.%clr%[92m
+@echo Отключить онлайн-контент в проводнике. 1>> %logfile%
+set timerStart=!time!
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "AllowOnlineTips" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoInternetOpenWith" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoOnlinePrintsWizard" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoPublishingWizard" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoWebServices" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3080,7 +3287,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить предупреждение системы безопасности при открытии файлов из интернета.%clr%[92m
 @echo Отключить предупреждение системы безопасности при открытии файлов из интернета. 1>> %logfile%
 set timerStart=!time!
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\1" /v "Flags" /t REG_DWORD /d "219" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\1" /v "Flags" /t REG_DWORD /d "219" /f 1>> %logfile% 2>>&1
 reg add "HKCU\Environment" /v "SEE_MASK_NOZONECHECKS" /t REG_SZ /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v "SEE_MASK_NOZONECHECKS" /t REG_SZ /d "1" /f 1>> %logfile% 2>>&1
 setx SEE_MASK_NOZONECHECKS 1 /m 1>> %logfile% 2>>&1
@@ -3158,6 +3365,7 @@ echo. 1>> %logfile%
 set timerStart=!time!
 call :kill "LockApp.exe"
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData" /v "AllowLockScreen" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "DisableLockScreenAppNotifications" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3178,14 +3386,6 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить фоновые приложения.%clr%[92m
-@echo Отключить фоновые приложения. 1>> %logfile%
-set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsRunInBackground" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
-set timerEnd=!time!
-call :timer
-@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
-echo. 1>> %logfile%
 @echo %clr%[36m Запретить использование биометрии.%clr%[92m
 @echo Запретить использование биометрии. 1>> %logfile%
 set timerStart=!time!
@@ -3196,10 +3396,17 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
+@echo %clr%[36m Отключить доступ приложениям к отслеживанию за движениями.%clr%[92m
+@echo Отключить доступ приложениям к отслеживанию за движениями. 1>> %logfile%
+set timerStart=!time!
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessMotion" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к информации об аккаунте.%clr%[92m
 @echo Отключить доступ приложениям к информации об аккаунте. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessAccountInfo" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userAccountInformation" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3208,7 +3415,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить приложениям доступ к уведомлениям.%clr%[92m
 @echo Отключить приложениям доступ к уведомлениям. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessNotifications" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userNotificationListener" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3217,7 +3423,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к календарю.%clr%[92m
 @echo Отключить доступ приложениям к календарю. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessCalendar" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\appointments" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3226,7 +3431,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к истории звонков.%clr%[92m
 @echo Отключить доступ приложениям к истории звонков. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessCallHistory" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCallHistory" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3235,7 +3439,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к задачам.%clr%[92m
 @echo Отключить доступ приложениям к задачам. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessTasks" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userDataTasks" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3252,7 +3455,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к камере.%clr%[92m
 @echo Отключить доступ приложениям к камере. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessCamera" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3269,7 +3471,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к контактам.%clr%[92m
 @echo Отключить доступ приложениям к контактам. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessContacts" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\contacts" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3278,7 +3479,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к диагностике.%clr%[92m
 @echo Отключить доступ приложениям к диагностике. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsGetDiagnosticInfo" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\appDiagnostics" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3303,7 +3503,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к радио.%clr%[92m
 @echo Отключить доступ приложениям к радио. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessRadios" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\radios" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3312,7 +3511,6 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить доступ приложениям к почте.%clr%[92m
 @echo Отключить доступ приложениям к почте. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v "LetAppsAccessEmail" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\email" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -3439,8 +3637,8 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить проверку отзыва сертификатов и включить их прозрачность.%clr%[92m
-@echo Отключить проверку отзыва сертификатов и включить их прозрачность. 1>> %logfile%
+@echo %clr%[36m Отключить проверку отзыва сертификатов и включить их прозрачность при запуске приложении.%clr%[92m
+@echo Отключить проверку отзыва сертификатов и включить их прозрачность при запуске приложении. 1>> %logfile%
 set timerStart=!time!
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\safer\codeidentifiers" /v "authenticodeenabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\safer\codeidentifiers" /v "TransparentEnabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -3474,10 +3672,11 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отключить отправку и синхронизацию файлов с облаком.%clr%[92m
 @echo Отключить отправку и синхронизацию файлов с облаком. 1>> %logfile%
 set timerStart=!time!
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "EnableBackupForWin8Apps" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableSettingSync" /t Reg_DWORD /d "2" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableSettingSyncUserOverride" /t Reg_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SettingSync" /v "DisableAppSyncSettingSync" /t Reg_DWORD /d "2" /f 1>> %logfile% 2>>&1
@@ -3512,7 +3711,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отключить файервол?%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m после отключения возможно не будет работать файервол в сторонней антивирусной программе.
 choice /c yn /n /t %autoChoose% /d n /m %keySelN%
 if !errorlevel!==1 (
@@ -3537,282 +3736,289 @@ if !errorlevel!==1 (
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
-	echo. 1>> %logfile% 2>>&1
-)
-@echo %clr%[36m Добавить дополнительные правила файервола для усиления защиты ОС?%clr%[92m
-choice /c yn /n /t %autoChoose% /d y /m %keySelY%
-if !errorlevel!==1 (
-echo Добавление дополнительных правил файервола для усиления защиты ОС. Пожалуйста подождите...
-@echo Добавление дополнительных правил файервола для усиления защиты ОС. 1>> %logfile%
-set timerStart=!time!
-	netsh advfirewall firewall add rule name="Block appvlp.exe" program="%ProgramFiles%\Microsoft Office\root\client\AppVLP.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block appvlp.exe" program="%ProgramFiles(x86)%\Microsoft Office\root\client\AppVLP.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block At.exe" program="%SystemRoot%\System32\At.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block At.exe" program="%SystemRoot%\SysWOW64\At.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Attrib.exe" program="%SystemRoot%\System32\Attrib.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Attrib.exe" program="%SystemRoot%\SysWOW64\Attrib.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Atbroker.exe" program="%SystemRoot%\System32\Atbroker.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Atbroker.exe" program="%SystemRoot%\SysWOW64\Atbroker.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block bash.exe" program="%SystemRoot%\System32\bash.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block bash.exe" program="%SystemRoot%\SysWOW64\bash.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block bitsadmin.exe" program="%SystemRoot%\System32\bitsadmin.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block bitsadmin.exe" program="%SystemRoot%\SysWOW64\bitsadmin.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block calc.exe" program="%SystemRoot%\System32\calc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block calc.exe" program="%SystemRoot%\SysWOW64\calc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block certreq.exe" program="%SystemRoot%\System32\certreq.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block certreq.exe" program="%SystemRoot%\SysWOW64\certreq.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block certutil.exe" program="%SystemRoot%\System32\certutil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block certutil.exe" program="%SystemRoot%\SysWOW64\certutil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block cmdkey.exe" program="%SystemRoot%\System32\cmdkey.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block cmdkey.exe" program="%SystemRoot%\SysWOW64\cmdkey.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block cmstp.exe" program="%SystemRoot%\System32\cmstp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block cmstp.exe" program="%SystemRoot%\SysWOW64\cmstp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block CompatTelRunner.exe" program="%SystemRoot%\System32\CompatTelRunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block CompatTelRunner.exe" program="%SystemRoot%\SysWOW64\CompatTelRunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ConfigSecurityPolicy.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.9-0\ConfigSecurityPolicy.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block control.exe" program="%SystemRoot%\System32\control.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block control.exe" program="%SystemRoot%\SysWOW64\control.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Csc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Csc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Csc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Csc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block cscript.exe" program="%SystemRoot%\System32\cscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block cscript.exe" program="%SystemRoot%\SysWOW64\cscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ctfmon.exe" program="%SystemRoot%\System32\ctfmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ctfmon.exe" program="%SystemRoot%\SysWOW64\ctfmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block curl.exe" program="%SystemRoot%\System32\curl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block curl.exe" program="%SystemRoot%\SysWOW64\curl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block desktopimgdownldr.exe" program="%SystemRoot%\System32\desktopimgdownldr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block DeviceDisplayObjectProvider.exe" program="%SystemRoot%\System32\DeviceDisplayObjectProvider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block DeviceDisplayObjectProvider.exe" program="%SystemRoot%\SysWOW64\DeviceDisplayObjectProvider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Dfsvc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Dfsvc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Dfsvc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Dfsvc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block diskshadow.exe" program="%SystemRoot%\SysWOW64\diskshadow.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block diskshadow.exe" program="%SystemRoot%\System32\diskshadow.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Dnscmd.exe" program="%SystemRoot%\SysWOW64\Dnscmd.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Dnscmd.exe" program="%SystemRoot%\System32\Dnscmd.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block dwm.exe" program="%SystemRoot%\SysWOW64\dwm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block dwm.exe" program="%SystemRoot%\System32\dwm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\SysWOW64\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\System32\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block esentutl.exe" program="%SystemRoot%\SysWOW64\esentutl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block esentutl.exe" program="%SystemRoot%\System32\esentutl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\SysWOW64\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\SysWOW64\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Expand.exe" program="%SystemRoot%\System32\Expand.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Expand.exe" program="%SystemRoot%\SysWOW64\Expand.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block explorer.exe" program="%SystemRoot%\System32\explorer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block explorer.exe" program="%SystemRoot%\SysWOW64\explorer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Extexport.exe" program="%ProgramFiles%\Internet Explorer\Extexport.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Extexport.exe" program="%ProgramFiles(x86)%\Internet Explorer\Extexport.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block extrac32.exe" program="%SystemRoot%\System32\extrac32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block extrac32.exe" program="%SystemRoot%\SysWOW64\extrac32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block findstr.exe" program="%SystemRoot%\System32\findstr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block findstr.exe" program="%SystemRoot%\SysWOW64\findstr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block forfiles.exe" program="%SystemRoot%\System32\forfiles.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block forfiles.exe" program="%SystemRoot%\SysWOW64\forfiles.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ftp.exe" program="%SystemRoot%\System32\ftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ftp.exe" program="%SystemRoot%\SysWOW64\ftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block gpscript.exe" program="%SystemRoot%\System32\gpscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block gpscript.exe" program="%SystemRoot%\SysWOW64\gpscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block hh.exe" program="%SystemRoot%\System32\hh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block hh.exe" program="%SystemRoot%\SysWOW64\hh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ie4uinit.exe" program="%SystemRoot%\System32\ie4uinit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ie4uinit.exe" program="%SystemRoot%\SysWOW64\ie4uinit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ieexec.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\ieexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ieexec.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\ieexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ilasm.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\ilasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ilasm.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\ilasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Infdefaultinstall.exe" program="%SystemRoot%\System32\Infdefaultinstall.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Infdefaultinstall.exe" program="%SystemRoot%\SysWOW64\Infdefaultinstall.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block lsass.exe" program="%SystemRoot%\System32\lsass.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block lsass.exe" program="%SystemRoot%\SysWOW64\lsass.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block makecab.exe" program="%SystemRoot%\System32\makecab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block makecab.exe" program="%SystemRoot%\SysWOW64\makecab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block mavinject.exe" program="%SystemRoot%\System32\mavinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block mavinject.exe" program="%SystemRoot%\SysWOW64\mavinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Microsoft.Workflow.Compiler.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Microsoft.Workflow.Compiler.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block mmc.exe" program="%SystemRoot%\SysWOW64\mmc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block mmc.exe" program="%SystemRoot%\System32\mmc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block MpCmdRun.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.4-0\MpCmdRun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block MpCmdRun.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.7-0\MpCmdRun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block MpCmdRun.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.9-0\MpCmdRun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework\v3.5\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v3.5\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block msconfig.exe" program="%SystemRoot%\System32\msconfig.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msdt.exe" program="%SystemRoot%\System32\Msdt.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Msdt.exe" program="%SystemRoot%\SysWOW64\Msdt.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block mshta.exe" program="%SystemRoot%\System32\mshta.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block mshta.exe" program="%SystemRoot%\SysWOW64\mshta.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block msiexec.exe" program="%SystemRoot%\System32\msiexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block msiexec.exe" program="%SystemRoot%\SysWOW64\msiexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Netsh.exe" program="%SystemRoot%\System32\Netsh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Netsh.exe" program="%SystemRoot%\SysWOW64\Netsh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block notepad.exe" program="%SystemRoot%\system32\notepad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block notepad.exe " program="%SystemRoot%\SysWOW64\notepad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block odbcconf.exe" program="%SystemRoot%\System32\odbcconf.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block odbcconf.exe" program="%SystemRoot%\SysWOW64\odbcconf.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block pcalua.exe" program="%SystemRoot%\System32\pcalua.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block pcalua.exe" program="%SystemRoot%\SysWOW64\pcalua.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block pcwrun.exe" program="%SystemRoot%\System32\pcwrun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block pcwrun.exe" program="%SystemRoot%\SysWOW64\pcwrun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block pktmon.exe" program="%SystemRoot%\System32\pktmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block pktmon.exe" program="%SystemRoot%\SysWOW64\pktmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block powershell.exe" program="%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block powershell.exe" program="%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block powershell_ise.exe" program="%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell_ise.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block powershell_ise.exe" program="%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell_ise.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Presentationhost.exe" program="%SystemRoot%\System32\Presentationhost.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Presentationhost.exe" program="%SystemRoot%\SysWOW64\Presentationhost.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block print.exe" program="%SystemRoot%\System32\print.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block print.exe" program="%SystemRoot%\SysWOW64\print.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block psr.exe" program="%SystemRoot%\System32\psr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block psr.exe" program="%SystemRoot%\SysWOW64\psr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block rasautou.exe" program="%SystemRoot%\System32\rasautou.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block rasautou.exe" program="%SystemRoot%\SysWOW64\rasautou.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block reg.exe" program="%SystemRoot%\System32\reg.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block reg.exe" program="%SystemRoot%\SysWOW64\reg.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regedit.exe" program="%SystemRoot%\System32\regedit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regedit.exe" program="%SystemRoot%\SysWOW64\regedit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regini.exe" program="%SystemRoot%\System32\regini.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regini.exe" program="%SystemRoot%\SysWOW64\regini.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Register-cimprovider.exe" program="%SystemRoot%\System32\Register-cimprovider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block Register-cimprovider.exe" program="%SystemRoot%\SysWOW64\Register-cimprovider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regsvcs.exe" program="%SystemRoot%\System32\regsvcs.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regsvcs.exe" program="%SystemRoot%\SysWOW64\regsvcs.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regsvr32.exe" program="%SystemRoot%\System32\regsvr32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block regsvr32.exe" program="%SystemRoot%\SysWOW64\regsvr32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block replace.exe" program="%SystemRoot%\System32\replace.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block replace.exe" program="%SystemRoot%\SysWOW64\replace.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block rpcping.exe" program="%SystemRoot%\System32\rpcping.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block rpcping.exe" program="%SystemRoot%\SysWOW64\rpcping.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block rundll32.exe" program="%SystemRoot%\System32\rundll32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block rundll32.exe" program="%SystemRoot%\SysWOW64\rundll32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block runonce.exe" program="%SystemRoot%\System32\runonce.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block runonce.exe" program="%SystemRoot%\SysWOW64\runonce.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block services.exe" program="%SystemRoot%\System32\services.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block services.exe" program="%SystemRoot%\SysWOW64\services.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block sc.exe" program="%SystemRoot%\System32\sc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block sc.exe" program="%SystemRoot%\SysWOW64\sc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block schtasks.exe" program="%SystemRoot%\System32\schtasks.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block schtasks.exe" program="%SystemRoot%\SysWOW64\schtasks.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block scriptrunner.exe" program="%SystemRoot%\System32\scriptrunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block scriptrunner.exe" program="%SystemRoot%\SysWOW64\scriptrunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block SyncAppvPublishingServer.exe" program="%SystemRoot%\System32\SyncAppvPublishingServer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block SyncAppvPublishingServer.exe" program="%SystemRoot%\SysWOW64\SyncAppvPublishingServer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block telnet.exe" program="%SystemRoot%\System32\telnet.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block telnet.exe" program="%SystemRoot%\SysWOW64\telnet.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block tftp.exe" program="%SystemRoot%\System32\tftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block tftp.exe" program="%SystemRoot%\SysWOW64\tftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ttdinject.exe" program="%SystemRoot%\System32\ttdinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block ttdinject.exe" program="%SystemRoot%\SysWOW64\ttdinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block tttracer.exe" program="%SystemRoot%\System32\tttracer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block tttracer.exe" program="%SystemRoot%\SysWOW64\tttracer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block vbc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\vbc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block vbc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v3.5\vbc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block verclsid.exe" program="%SystemRoot%\System32\verclsid.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block verclsid.exe" program="%SystemRoot%\SysWOW64\verclsid.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wab.exe" program="%ProgramFiles%\Windows Mail\wab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wab.exe" program="%ProgramFiles(x86)%\Windows Mail\wab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block WerFault.exe" program="%SystemRoot%\SysWOW64\WerFault.exe" protocol=any dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block WerFault.exe" program="%SystemRoot%\SysWOW64\WerFault.exe" protocol=any dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wininit.exe" program="%SystemRoot%\System32\wininit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wininit.exe" program="%SystemRoot%\SysWOW64\wininit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block winlogon.exe" program="%SystemRoot%\System32\winlogon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block winlogon.exe" program="%SystemRoot%\SysWOW64\winlogon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wmic.exe" program="%SystemRoot%\System32\wbem\wmic.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wmic.exe" program="%SystemRoot%\SysWOW64\wbem\wmic.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wordpad.exe" program="%ProgramFiles%\windows nt\accessories\wordpad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wordpad.exe" program="%ProgramFiles(x86)%\windows nt\accessories\wordpad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wscript.exe" program="%SystemRoot%\System32\wscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wscript.exe" program="%SystemRoot%\SysWOW64\wscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wsreset.exe" program="%SystemRoot%\System32\wsreset.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block wsreset.exe" program="%SystemRoot%\SysWOW64\wsreset.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block xwizard.exe" program="%SystemRoot%\System32\xwizard.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="Block xwizard.exe" program="%SystemRoot%\SysWOW64\xwizard.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
-:: блокировка телеметрии
-	netsh advfirewall firewall add rule name="telemetry_vortex.data.microsoft.com" dir=out action=block remoteip=191.232.139.254 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_telecommand.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.92 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_oca.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.63 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_sqm.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.93 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_watson.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.43,65.52.108.29 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_redir.metaservices.microsoft.com" dir=out action=block remoteip=194.44.4.200,194.44.4.208 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_choice.microsoft.com" dir=out action=block remoteip=157.56.91.77 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.7 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_reports.wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.91 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.93 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_services.wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.92 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_sqm.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.94 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.9 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_watson.ppe.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.11 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_telemetry.appex.bing.net" dir=out action=block remoteip=168.63.108.233 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_telemetry.urs.microsoft.com" dir=out action=block remoteip=157.56.74.250 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_settings-sandbox.data.microsoft.com" dir=out action=block remoteip=111.221.29.177 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_vortex-sandbox.data.microsoft.com" dir=out action=block remoteip=64.4.54.32 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_survey.watson.microsoft.com" dir=out action=block remoteip=207.68.166.254 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_watson.live.com" dir=out action=block remoteip=207.46.223.94 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_watson.microsoft.com" dir=out action=block remoteip=65.55.252.71 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_statsfe2.ws.microsoft.com" dir=out action=block remoteip=64.4.54.22 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_corpext.msitadfs.glbdns2.microsoft.com" dir=out action=block remoteip=131.107.113.238 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_compatexchange.cloudapp.net" dir=out action=block remoteip=23.99.10.11 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_cs1.wpc.v0cdn.net" dir=out action=block remoteip=68.232.34.200 enable=no profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_a-0001.a-msedge.net" dir=out action=block remoteip=204.79.197.200 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_statsfe2.update.microsoft.com.akadns.net" dir=out action=block remoteip=64.4.54.22 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_sls.update.microsoft.com.akadns.net" dir=out action=block remoteip=157.56.77.139 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_fe2.update.microsoft.com.akadns.net" dir=out action=block remoteip=134.170.58.121,134.170.58.123,134.170.53.29,66.119.144.190,134.170.58.189,134.170.58.118,134.170.53.30,134.170.51.190 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_diagnostics.support.microsoft.com" dir=out action=block remoteip=157.56.121.89 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_corp.sts.microsoft.com" dir=out action=block remoteip=131.107.113.238 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_statsfe1.ws.microsoft.com" dir=out action=block remoteip=134.170.115.60 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_pre.footprintpredict.com" dir=out action=block remoteip=204.79.197.200 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_i1.services.social.microsoft.com" dir=out action=block remoteip=104.82.22.249 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_feedback.windows.com" dir=out action=block remoteip=134.170.185.70 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_feedback.microsoft-hohm.com" dir=out action=block remoteip=64.4.6.100,65.55.39.10 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_feedback.search.microsoft.com" dir=out action=block remoteip=157.55.129.21 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_rad.msn.com" dir=out action=block remoteip=207.46.194.25 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_preview.msn.com" dir=out action=block remoteip=23.102.21.4 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_dart.l.doubleclick.net" dir=out action=block remoteip=173.194.113.220,173.194.113.219,216.58.209.166 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_ads.msn.com" dir=out action=block remoteip=157.56.91.82,157.56.23.91,104.82.14.146,207.123.56.252,185.13.160.61,8.254.209.254 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_a.ads1.msn.com" dir=out action=block remoteip=198.78.208.254,185.13.160.61 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_global.msads.net.c.footprint.net" dir=out action=block remoteip=185.13.160.61,8.254.209.254,207.123.56.252 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_az361816.vo.msecnd.net" dir=out action=block remoteip=68.232.34.200 enable=no profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_oca.telemetry.microsoft.com.nsatc.net" dir=out action=block remoteip=65.55.252.63 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_reports.wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.91 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.7 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_cs1.wpc.v0cdn.net" dir=out action=block remoteip=68.232.34.200 enable=no profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_vortex-sandbox.data.microsoft.com" dir=out action=block remoteip=64.4.54.32 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_pre.footprintpredict.com" dir=out action=block remoteip=204.79.197.200 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_i1.services.social.microsoft.com" dir=out action=block remoteip=104.82.22.249 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_ssw.live.com" dir=out action=block remoteip=207.46.101.29 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_statsfe1.ws.microsoft.com" dir=out action=block remoteip=134.170.115.60 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_msnbot-65-55-108-23.search.msn.com" dir=out action=block remoteip=65.55.108.23 enable=yes profile=any 1>> %logfile% 2>>&1
-	netsh advfirewall firewall add rule name="telemetry_a23-218-212-69.deploy.static.akamaitechnologies.com" dir=out action=block remoteip=23.218.212.69 enable=yes profile=any 1>> %logfile% 2>>&1
-	set timerEnd=!time!
-	call :timer
-	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
-@echo %clr%[36m Установить файл Hosts от StevenBlack, блокирующий рекламу и телеметрию?%clr%[92m
+set fwname="Block appvlp.exe"
+netsh advfirewall firewall show rule name=all | findstr /r %fwname% >nul
+if errorlevel 1 (
+	@echo %clr%[36m Добавить дополнительные правила файервола для усиления защиты ОС?%clr%[92m
+	choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+	if !errorlevel!==1 (
+		echo Добавление дополнительных правил файервола для усиления защиты ОС. Пожалуйста подождите...
+		@echo Добавление дополнительных правил файервола для усиления защиты ОС. 1>> %logfile%
+		set timerStart=!time!
+		netsh advfirewall firewall add rule name="Block appvlp.exe" program="%ProgramFiles%\Microsoft Office\root\client\AppVLP.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block appvlp.exe" program="%ProgramFiles(x86)%\Microsoft Office\root\client\AppVLP.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block At.exe" program="%SystemRoot%\System32\At.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block At.exe" program="%SystemRoot%\SysWOW64\At.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Attrib.exe" program="%SystemRoot%\System32\Attrib.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Attrib.exe" program="%SystemRoot%\SysWOW64\Attrib.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Atbroker.exe" program="%SystemRoot%\System32\Atbroker.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Atbroker.exe" program="%SystemRoot%\SysWOW64\Atbroker.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block bash.exe" program="%SystemRoot%\System32\bash.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block bash.exe" program="%SystemRoot%\SysWOW64\bash.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block bitsadmin.exe" program="%SystemRoot%\System32\bitsadmin.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block bitsadmin.exe" program="%SystemRoot%\SysWOW64\bitsadmin.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block calc.exe" program="%SystemRoot%\System32\calc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block calc.exe" program="%SystemRoot%\SysWOW64\calc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block certreq.exe" program="%SystemRoot%\System32\certreq.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block certreq.exe" program="%SystemRoot%\SysWOW64\certreq.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block certutil.exe" program="%SystemRoot%\System32\certutil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block certutil.exe" program="%SystemRoot%\SysWOW64\certutil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block cmdkey.exe" program="%SystemRoot%\System32\cmdkey.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block cmdkey.exe" program="%SystemRoot%\SysWOW64\cmdkey.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block cmstp.exe" program="%SystemRoot%\System32\cmstp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block cmstp.exe" program="%SystemRoot%\SysWOW64\cmstp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block CompatTelRunner.exe" program="%SystemRoot%\System32\CompatTelRunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block CompatTelRunner.exe" program="%SystemRoot%\SysWOW64\CompatTelRunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ConfigSecurityPolicy.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.9-0\ConfigSecurityPolicy.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block control.exe" program="%SystemRoot%\System32\control.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block control.exe" program="%SystemRoot%\SysWOW64\control.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Csc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Csc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Csc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Csc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block cscript.exe" program="%SystemRoot%\System32\cscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block cscript.exe" program="%SystemRoot%\SysWOW64\cscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ctfmon.exe" program="%SystemRoot%\System32\ctfmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ctfmon.exe" program="%SystemRoot%\SysWOW64\ctfmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block curl.exe" program="%SystemRoot%\System32\curl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block curl.exe" program="%SystemRoot%\SysWOW64\curl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block desktopimgdownldr.exe" program="%SystemRoot%\System32\desktopimgdownldr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block DeviceDisplayObjectProvider.exe" program="%SystemRoot%\System32\DeviceDisplayObjectProvider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block DeviceDisplayObjectProvider.exe" program="%SystemRoot%\SysWOW64\DeviceDisplayObjectProvider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Dfsvc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Dfsvc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Dfsvc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Dfsvc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block diskshadow.exe" program="%SystemRoot%\SysWOW64\diskshadow.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block diskshadow.exe" program="%SystemRoot%\System32\diskshadow.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Dnscmd.exe" program="%SystemRoot%\SysWOW64\Dnscmd.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Dnscmd.exe" program="%SystemRoot%\System32\Dnscmd.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block dwm.exe" program="%SystemRoot%\SysWOW64\dwm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block dwm.exe" program="%SystemRoot%\System32\dwm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\SysWOW64\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\System32\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block esentutl.exe" program="%SystemRoot%\SysWOW64\esentutl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block esentutl.exe" program="%SystemRoot%\System32\esentutl.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\SysWOW64\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block eventvwr.exe" program="%SystemRoot%\SysWOW64\eventvwr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Expand.exe" program="%SystemRoot%\System32\Expand.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Expand.exe" program="%SystemRoot%\SysWOW64\Expand.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block explorer.exe" program="%SystemRoot%\System32\explorer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block explorer.exe" program="%SystemRoot%\SysWOW64\explorer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Extexport.exe" program="%ProgramFiles%\Internet Explorer\Extexport.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Extexport.exe" program="%ProgramFiles(x86)%\Internet Explorer\Extexport.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block extrac32.exe" program="%SystemRoot%\System32\extrac32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block extrac32.exe" program="%SystemRoot%\SysWOW64\extrac32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block findstr.exe" program="%SystemRoot%\System32\findstr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block findstr.exe" program="%SystemRoot%\SysWOW64\findstr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block forfiles.exe" program="%SystemRoot%\System32\forfiles.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block forfiles.exe" program="%SystemRoot%\SysWOW64\forfiles.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ftp.exe" program="%SystemRoot%\System32\ftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ftp.exe" program="%SystemRoot%\SysWOW64\ftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block gpscript.exe" program="%SystemRoot%\System32\gpscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block gpscript.exe" program="%SystemRoot%\SysWOW64\gpscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block hh.exe" program="%SystemRoot%\System32\hh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block hh.exe" program="%SystemRoot%\SysWOW64\hh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ie4uinit.exe" program="%SystemRoot%\System32\ie4uinit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ie4uinit.exe" program="%SystemRoot%\SysWOW64\ie4uinit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ieexec.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\ieexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ieexec.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\ieexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ilasm.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\ilasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ilasm.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\ilasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Infdefaultinstall.exe" program="%SystemRoot%\System32\Infdefaultinstall.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Infdefaultinstall.exe" program="%SystemRoot%\SysWOW64\Infdefaultinstall.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block InstallUtil.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Jsc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Jsc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block lsass.exe" program="%SystemRoot%\System32\lsass.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block lsass.exe" program="%SystemRoot%\SysWOW64\lsass.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block makecab.exe" program="%SystemRoot%\System32\makecab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block makecab.exe" program="%SystemRoot%\SysWOW64\makecab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block mavinject.exe" program="%SystemRoot%\System32\mavinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block mavinject.exe" program="%SystemRoot%\SysWOW64\mavinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Microsoft.Workflow.Compiler.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Microsoft.Workflow.Compiler.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block mmc.exe" program="%SystemRoot%\SysWOW64\mmc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block mmc.exe" program="%SystemRoot%\System32\mmc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block MpCmdRun.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.4-0\MpCmdRun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block MpCmdRun.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.7-0\MpCmdRun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block MpCmdRun.exe" program="%ProgramData%\Microsoft\Windows Defender\Platform\4.18.2008.9-0\MpCmdRun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework\v3.5\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v3.5\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msbuild.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\Msbuild.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block msconfig.exe" program="%SystemRoot%\System32\msconfig.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msdt.exe" program="%SystemRoot%\System32\Msdt.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Msdt.exe" program="%SystemRoot%\SysWOW64\Msdt.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block mshta.exe" program="%SystemRoot%\System32\mshta.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block mshta.exe" program="%SystemRoot%\SysWOW64\mshta.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block msiexec.exe" program="%SystemRoot%\System32\msiexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block msiexec.exe" program="%SystemRoot%\SysWOW64\msiexec.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Netsh.exe" program="%SystemRoot%\System32\Netsh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Netsh.exe" program="%SystemRoot%\SysWOW64\Netsh.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block notepad.exe" program="%SystemRoot%\system32\notepad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block notepad.exe " program="%SystemRoot%\SysWOW64\notepad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block odbcconf.exe" program="%SystemRoot%\System32\odbcconf.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block odbcconf.exe" program="%SystemRoot%\SysWOW64\odbcconf.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block pcalua.exe" program="%SystemRoot%\System32\pcalua.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block pcalua.exe" program="%SystemRoot%\SysWOW64\pcalua.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block pcwrun.exe" program="%SystemRoot%\System32\pcwrun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block pcwrun.exe" program="%SystemRoot%\SysWOW64\pcwrun.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block pktmon.exe" program="%SystemRoot%\System32\pktmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block pktmon.exe" program="%SystemRoot%\SysWOW64\pktmon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block powershell.exe" program="%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block powershell.exe" program="%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block powershell_ise.exe" program="%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell_ise.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block powershell_ise.exe" program="%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell_ise.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Presentationhost.exe" program="%SystemRoot%\System32\Presentationhost.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Presentationhost.exe" program="%SystemRoot%\SysWOW64\Presentationhost.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block print.exe" program="%SystemRoot%\System32\print.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block print.exe" program="%SystemRoot%\SysWOW64\print.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block psr.exe" program="%SystemRoot%\System32\psr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block psr.exe" program="%SystemRoot%\SysWOW64\psr.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block rasautou.exe" program="%SystemRoot%\System32\rasautou.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block rasautou.exe" program="%SystemRoot%\SysWOW64\rasautou.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block reg.exe" program="%SystemRoot%\System32\reg.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block reg.exe" program="%SystemRoot%\SysWOW64\reg.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regasm.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\regasm.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regedit.exe" program="%SystemRoot%\System32\regedit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regedit.exe" program="%SystemRoot%\SysWOW64\regedit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regini.exe" program="%SystemRoot%\System32\regini.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regini.exe" program="%SystemRoot%\SysWOW64\regini.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Register-cimprovider.exe" program="%SystemRoot%\System32\Register-cimprovider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block Register-cimprovider.exe" program="%SystemRoot%\SysWOW64\Register-cimprovider.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regsvcs.exe" program="%SystemRoot%\System32\regsvcs.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regsvcs.exe" program="%SystemRoot%\SysWOW64\regsvcs.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regsvr32.exe" program="%SystemRoot%\System32\regsvr32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block regsvr32.exe" program="%SystemRoot%\SysWOW64\regsvr32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block replace.exe" program="%SystemRoot%\System32\replace.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block replace.exe" program="%SystemRoot%\SysWOW64\replace.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block rpcping.exe" program="%SystemRoot%\System32\rpcping.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block rpcping.exe" program="%SystemRoot%\SysWOW64\rpcping.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block rundll32.exe" program="%SystemRoot%\System32\rundll32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block rundll32.exe" program="%SystemRoot%\SysWOW64\rundll32.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block runonce.exe" program="%SystemRoot%\System32\runonce.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block runonce.exe" program="%SystemRoot%\SysWOW64\runonce.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block services.exe" program="%SystemRoot%\System32\services.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block services.exe" program="%SystemRoot%\SysWOW64\services.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block sc.exe" program="%SystemRoot%\System32\sc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block sc.exe" program="%SystemRoot%\SysWOW64\sc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block schtasks.exe" program="%SystemRoot%\System32\schtasks.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block schtasks.exe" program="%SystemRoot%\SysWOW64\schtasks.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block scriptrunner.exe" program="%SystemRoot%\System32\scriptrunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block scriptrunner.exe" program="%SystemRoot%\SysWOW64\scriptrunner.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block SyncAppvPublishingServer.exe" program="%SystemRoot%\System32\SyncAppvPublishingServer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block SyncAppvPublishingServer.exe" program="%SystemRoot%\SysWOW64\SyncAppvPublishingServer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block telnet.exe" program="%SystemRoot%\System32\telnet.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block telnet.exe" program="%SystemRoot%\SysWOW64\telnet.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block tftp.exe" program="%SystemRoot%\System32\tftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block tftp.exe" program="%SystemRoot%\SysWOW64\tftp.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ttdinject.exe" program="%SystemRoot%\System32\ttdinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block ttdinject.exe" program="%SystemRoot%\SysWOW64\ttdinject.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block tttracer.exe" program="%SystemRoot%\System32\tttracer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block tttracer.exe" program="%SystemRoot%\SysWOW64\tttracer.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block vbc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\vbc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block vbc.exe" program="%SystemRoot%\Microsoft.NET\Framework64\v3.5\vbc.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block verclsid.exe" program="%SystemRoot%\System32\verclsid.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block verclsid.exe" program="%SystemRoot%\SysWOW64\verclsid.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wab.exe" program="%ProgramFiles%\Windows Mail\wab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wab.exe" program="%ProgramFiles(x86)%\Windows Mail\wab.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block WerFault.exe" program="%SystemRoot%\SysWOW64\WerFault.exe" protocol=any dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block WerFault.exe" program="%SystemRoot%\SysWOW64\WerFault.exe" protocol=any dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wininit.exe" program="%SystemRoot%\System32\wininit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wininit.exe" program="%SystemRoot%\SysWOW64\wininit.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block winlogon.exe" program="%SystemRoot%\System32\winlogon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block winlogon.exe" program="%SystemRoot%\SysWOW64\winlogon.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wmic.exe" program="%SystemRoot%\System32\wbem\wmic.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wmic.exe" program="%SystemRoot%\SysWOW64\wbem\wmic.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wordpad.exe" program="%ProgramFiles%\windows nt\accessories\wordpad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wordpad.exe" program="%ProgramFiles(x86)%\windows nt\accessories\wordpad.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wscript.exe" program="%SystemRoot%\System32\wscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wscript.exe" program="%SystemRoot%\SysWOW64\wscript.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wsreset.exe" program="%SystemRoot%\System32\wsreset.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block wsreset.exe" program="%SystemRoot%\SysWOW64\wsreset.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block xwizard.exe" program="%SystemRoot%\System32\xwizard.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="Block xwizard.exe" program="%SystemRoot%\SysWOW64\xwizard.exe" dir=out enable=yes action=block profile=any 1>> %logfile% 2>>&1
+		:: Блокировка телеметрии
+		netsh advfirewall firewall add rule name="telemetry_vortex.data.microsoft.com" dir=out action=block remoteip=191.232.139.254 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_telecommand.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.92 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_oca.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.63 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_sqm.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.93 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_watson.telemetry.microsoft.com" dir=out action=block remoteip=65.55.252.43,65.52.108.29 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_redir.metaservices.microsoft.com" dir=out action=block remoteip=194.44.4.200,194.44.4.208 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_choice.microsoft.com" dir=out action=block remoteip=157.56.91.77 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.7 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_reports.wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.91 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.93 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_services.wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.92 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_sqm.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.94 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.9 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_watson.ppe.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.11 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_telemetry.appex.bing.net" dir=out action=block remoteip=168.63.108.233 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_telemetry.urs.microsoft.com" dir=out action=block remoteip=157.56.74.250 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_settings-sandbox.data.microsoft.com" dir=out action=block remoteip=111.221.29.177 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_vortex-sandbox.data.microsoft.com" dir=out action=block remoteip=64.4.54.32 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_survey.watson.microsoft.com" dir=out action=block remoteip=207.68.166.254 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_watson.live.com" dir=out action=block remoteip=207.46.223.94 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_watson.microsoft.com" dir=out action=block remoteip=65.55.252.71 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_statsfe2.ws.microsoft.com" dir=out action=block remoteip=64.4.54.22 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_corpext.msitadfs.glbdns2.microsoft.com" dir=out action=block remoteip=131.107.113.238 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_compatexchange.cloudapp.net" dir=out action=block remoteip=23.99.10.11 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_cs1.wpc.v0cdn.net" dir=out action=block remoteip=68.232.34.200 enable=no profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_a-0001.a-msedge.net" dir=out action=block remoteip=204.79.197.200 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_statsfe2.update.microsoft.com.akadns.net" dir=out action=block remoteip=64.4.54.22 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_sls.update.microsoft.com.akadns.net" dir=out action=block remoteip=157.56.77.139 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_fe2.update.microsoft.com.akadns.net" dir=out action=block remoteip=134.170.58.121,134.170.58.123,134.170.53.29,66.119.144.190,134.170.58.189,134.170.58.118,134.170.53.30,134.170.51.190 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_diagnostics.support.microsoft.com" dir=out action=block remoteip=157.56.121.89 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_corp.sts.microsoft.com" dir=out action=block remoteip=131.107.113.238 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_statsfe1.ws.microsoft.com" dir=out action=block remoteip=134.170.115.60 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_pre.footprintpredict.com" dir=out action=block remoteip=204.79.197.200 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_i1.services.social.microsoft.com" dir=out action=block remoteip=104.82.22.249 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_feedback.windows.com" dir=out action=block remoteip=134.170.185.70 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_feedback.microsoft-hohm.com" dir=out action=block remoteip=64.4.6.100,65.55.39.10 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_feedback.search.microsoft.com" dir=out action=block remoteip=157.55.129.21 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_rad.msn.com" dir=out action=block remoteip=207.46.194.25 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_preview.msn.com" dir=out action=block remoteip=23.102.21.4 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_dart.l.doubleclick.net" dir=out action=block remoteip=173.194.113.220,173.194.113.219,216.58.209.166 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_ads.msn.com" dir=out action=block remoteip=157.56.91.82,157.56.23.91,104.82.14.146,207.123.56.252,185.13.160.61,8.254.209.254 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_a.ads1.msn.com" dir=out action=block remoteip=198.78.208.254,185.13.160.61 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_global.msads.net.c.footprint.net" dir=out action=block remoteip=185.13.160.61,8.254.209.254,207.123.56.252 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_az361816.vo.msecnd.net" dir=out action=block remoteip=68.232.34.200 enable=no profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_oca.telemetry.microsoft.com.nsatc.net" dir=out action=block remoteip=65.55.252.63 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_reports.wes.df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.91 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_df.telemetry.microsoft.com" dir=out action=block remoteip=65.52.100.7 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_cs1.wpc.v0cdn.net" dir=out action=block remoteip=68.232.34.200 enable=no profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_vortex-sandbox.data.microsoft.com" dir=out action=block remoteip=64.4.54.32 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_pre.footprintpredict.com" dir=out action=block remoteip=204.79.197.200 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_i1.services.social.microsoft.com" dir=out action=block remoteip=104.82.22.249 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_ssw.live.com" dir=out action=block remoteip=207.46.101.29 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_statsfe1.ws.microsoft.com" dir=out action=block remoteip=134.170.115.60 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_msnbot-65-55-108-23.search.msn.com" dir=out action=block remoteip=65.55.108.23 enable=yes profile=any 1>> %logfile% 2>>&1
+		netsh advfirewall firewall add rule name="telemetry_a23-218-212-69.deploy.static.akamaitechnologies.com" dir=out action=block remoteip=23.218.212.69 enable=yes profile=any 1>> %logfile% 2>>&1
+		set timerEnd=!time!
+		call :timer
+		@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+		echo. 1>> %logfile%
+	)
+)
+@echo %clr%[36m Установить файл Hosts от StevenBlack, блокирующий рекламу и телеметрию с дополненными блокировками фейковых новостей, азартных игр, порно и социальных расширений?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
-	echo Установка файла Hosts от StevenBlack, блокирующий рекламу и телеметрию. Пожалуйста подождите...
-	@echo Установка файла Hosts от StevenBlack, блокирующий рекламу и телеметрию. 1>> %logfile%
+	echo Установка файла Hosts от StevenBlack, блокирующий рекламу и телеметрию с дополненными блокировками фейковых новостей, азартных игр, порно и социальных расширений. Пожалуйста подождите...
+	@echo Установка файла Hosts от StevenBlack, блокирующий рекламу и телеметрию с дополненными блокировками фейковых новостей, азартных игр, порно и социальных расширений. 1>> %logfile%
 	set timerStart=!time!
-	copy "%SystemRoot%\System32\drivers\etc\hosts" "%~dp0\..\..\Backup\hosts" 1>> %logfile% 2>>&1
-	powershell "Invoke-WebRequest 'https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts' -OutFile $Env:SystemRoot\System32\drivers\etc\hosts -wa SilentlyContinue" 1>> %logfile% 2>>&1
+	copy "%SystemRoot%\System32\drivers\etc\hosts" "%~dp0\..\..\Backup\Backup_latest_hosts_%daytime%.txt" 1>> %logfile% 2>>&1
+	timeout /t 2 /nobreak | break
+	%SystemUser% del /f /q "%SystemRoot%\System32\drivers\etc\hosts" 1>> %logfile% 2>>&1
+	timeout /t 1 /nobreak | break
+	%PS% "Invoke-WebRequest http://sbc.io/hosts/alternates/fakenews-gambling-porn-social/hosts -OutFile $Env:SystemRoot\System32\drivers\etc\hosts -wa SilentlyContinue" 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3824,7 +4030,7 @@ if !errorlevel!==1 (
 	echo Добавление черного списка телеметрии в файл hosts и правила файервола. Пожалуйста подождите...
 	@echo Добавление черного списка телеметрии в файл hosts и правила файервола. 1>> %logfile%
 	set timerStart=!time!
-	powershell -ExecutionPolicy Bypass -file "%~dp0BlacklistTelemetry.ps1" -wa SilentlyContinue 1>> %logfile% 2>>&1
+	%PS% "%~dp0BlacklistTelemetry.ps1" -wa SilentlyContinue 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3840,20 +4046,20 @@ if !errorlevel!==1 (
 	netsh dns add encryption server=94.140.15.15 dohtemplate=https://dns.adguard.com/dns-query 1>> %logfile% 2>>&1
 	netsh dns add encryption server=2a10:50c0::ad1:ff dohtemplate=https://dns.adguard.com/dns-query 1>> %logfile% 2>>&1
 	netsh dns add encryption server=2a10:50c0::ad2:ff dohtemplate=https://dns.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=94.140.14.15 dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=94.140.15.16 dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=2a10:50c0::bad1:ff dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=2a10:50c0::bad2:ff dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=94.140.14.140 dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=94.140.14.141 dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=2a10:50c0::1:ff dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
-	::netsh dns add encryption server=2a10:50c0::2:ff dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=94.140.14.15 dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=94.140.15.16 dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=2a10:50c0::bad1:ff dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=2a10:50c0::bad2:ff dohtemplate=https://dns-family.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=94.140.14.140 dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=94.140.14.141 dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=2a10:50c0::1:ff dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
+	:: netsh dns add encryption server=2a10:50c0::2:ff dohtemplate=https://dns-unfiltered.adguard.com/dns-query 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Отключить формирование отзывов.%clr%[92m
 @echo Отключить формирование отзывов. 1>> %logfile%
 set timerStart=!time!
@@ -3897,10 +4103,11 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Показать расширения файлов.%clr%[92m
-@echo Показать расширения файлов. 1>> %logfile%
+@echo %clr%[36m Показать расширения для файлов.%clr%[92m
+@echo Показать расширения для файлов. 1>> %logfile%
 set timerStart=!time!
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\Folder\HideFileExt" /v "CheckedValue" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4319,7 +4526,7 @@ echo. 1>> %logfile%
 @echo Отключить контроль за свободным пространством жестких дисков. 1>> %logfile%
 set timerStart=!time!
 call :disable_task "Microsoft\Windows\DiskFootprint\StorageSense"
-powershell "Remove-Item -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy' -Recurse -ErrorAction SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Remove-Item -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy' -Recurse -ErrorAction SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4359,7 +4566,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Заменить метод ввода по умолчанию на английский.%clr%[92m
 @echo Заменить метод ввода по умолчанию на английский. 1>> %logfile%
 set timerStart=!time!
-powershell "Set-WinDefaultInputMethodOverride -InputTip '0409:00000409' -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Set-WinDefaultInputMethodOverride -InputTip '0409:00000409' -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4407,10 +4614,14 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить клавишу справки F1 в проводнике и на рабочем столе.%clr%[92m
-@echo Отключить клавишу справки F1 в проводнике и на рабочем столе. 1>> %logfile%
+@echo %clr%[36m Отключить клавишу справки F1 в проводнике, на рабочем столе и обратную связь со справкой.%clr%[92m
+@echo Отключить клавишу справки F1 в проводнике, на рабочем столе и обратную связь со справкой. 1>> %logfile%
 set timerStart=!time!
 reg add "HKCU\SOFTWARE\Classes\Typelib\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}\1.0\0\win64" /v "(default)" /t REG_BINARY /d "" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Assistance\Client\1.0" /v "NoExplicitFeedback" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Assistance\Client\1.0" /v "NoImplicitFeedback" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Assistance\Client\1.0" /v "NoOnlineAssist" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Assistance\Client\1.0" /v "NoActiveHelp" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4448,6 +4659,7 @@ echo. 1>> %logfile%
 @echo Отключить автозапуск для всех носителей и устройств. 1>> %logfile%
 set timerStart=!time!
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers" /v "DisableAutoplay" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoAutorun" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoDriveTypeAutoRun" /t REG_DWORD /d "255" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -4479,12 +4691,22 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
+@echo %clr%[36m Включить режим разработчика.%clr%[92m
+@echo Включить режим разработчика. 1>> %logfile%
+set timerStart=!time!
+for /f "tokens=1 delims=" %%a in ('dism /Online /Get-Capabilities /Format:Table /English^| findstr /i /c:"Tools.DeveloperMode.Core"^| findstr /l "Not Persent"') do (dism /Online /Add-Capability /CapabilityName:"Tools.DeveloperMode.Core~~~~0.0.1.0" 1>> %logfile% 2>>&1)
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /v "AllowAllTrustedApps" /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /v "AllowDevelopmentWithoutDevLicense" /d "1" /f 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
 @echo %clr%[36m Включить NET Framework 3.5 версии.%clr%[92m
 @echo Включить NET Framework 3.5 версии. 1>> %logfile%
 set timerStart=!time!
-Dism /online /enable-feature /featurename:"NetFx3" /All /Source:"%~dp0microsoft-windows-netfx3.cab" /LimitAccess /norestart 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Windows-Identity-Foundation -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+Dism /Online /Enable-Feature /featurename:"NetFx3" /All /Source:"%~dp0microsoft-windows-netfx3.cab" /LimitAccess /norestart 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Windows-Identity-Foundation -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4492,7 +4714,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить компоненты прежних версии.%clr%[92m
 @echo Включить компоненты прежних версии. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName LegacyComponents -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName LegacyComponents -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4500,7 +4722,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить подсистему Linux (WSL).%clr%[92m
 @echo Включить подсистему Linux (WSL). 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4508,7 +4730,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить песочницу Windows.%clr%[92m
 @echo Включить песочницу Windows. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Containers-DisposableClientVM -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Containers-DisposableClientVM -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4516,11 +4738,11 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить блокировку устройства.%clr%[92m %clr%[7;31mПримечание:%clr%[0m%clr%[36m%clr%[92m работает только в редакциях Education и Enterprise.
 @echo Включить блокировку устройства. Примечание: работает только в редакциях Education и Enterprise. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Client-EmbeddedExp-Package -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Client-DeviceLockdown -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Client-EmbeddedShellLauncher -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Client-EmbeddedBootExp -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Client-EmbeddedLogon -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Client-EmbeddedExp-Package -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Client-DeviceLockdown -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Client-EmbeddedShellLauncher -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Client-EmbeddedBootExp -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Client-EmbeddedLogon -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4528,7 +4750,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить платформу виртуальной машины.%clr%[92m
 @echo Включить платформу виртуальной машины. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4536,8 +4758,8 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить виртуальную платформу Hyper-V.%clr%[92m
 @echo Включить виртуальную платформу Hyper-V. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName HypervisorPlatform -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName HypervisorPlatform -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4545,7 +4767,26 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить компоненты DirectPlay.%clr%[92m
 @echo Включить компоненты DirectPlay. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName DirectPlay -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName DirectPlay -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Включить компоненты DirectX.%clr%[92m
+@echo Включить компоненты DirectX. 1>> %logfile%
+set timerStart=!time!
+for /f "tokens=1 delims=" %%a in ('dism /Online /Get-Capabilities /Format:Table /English^| findstr /i /c:"Tools.Graphics.DirectX"^| findstr /l "Not Persent"') do (
+dism /Online /Add-Capability /CapabilityName:"DirectX.Configuration.Database~~~~0.0.1.0" 1>> %logfile% 2>>&1
+dism /Online /Add-Capability /CapabilityName:"Tools.Graphics.DirectX~~~~0.0.1.0" 1>> %logfile% 2>>&1
+)
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Включить компоненты для работы с мультимедиа.%clr%[92m
+@echo Включить компоненты для работы с мультимедиа. 1>> %logfile%
+set timerStart=!time!
+for /f "tokens=1 delims=" %%a in ('dism /Online /Get-Capabilities /Format:Table /English^| findstr /i /c:"MediaFeaturePack"^| findstr /l "Not Persent"') do (dism /Online /Add-Capability /CapabilityName:"Media.MediaFeaturePack~~~~0.0.1.0" 1>> %logfile% 2>>&1)
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4553,17 +4794,17 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить устаревший протокол SMB 1.0 и Samba сервер для поддержки старых ОС.%clr%[92m
 @echo Включить устаревший протокол SMB 1.0 и Samba сервер для поддержки старых ОС. 1>> %logfile%
 set timerStart=!time!
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol-Client -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol-Server -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol-Deprecation -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Set-SmbServerConfiguration -EnableSMB1Protocol $true -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol-Client -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol-Server -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol-Deprecation -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Set-SmbServerConfiguration -EnableSMB1Protocol $true -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
 sc config mrxsmb start= delayed-auto 1>> %logfile% 2>>&1
 sc config Mrxsmb10 start= delayed-auto 1>> %logfile% 2>>&1
 sc config Mrxsmb20 start= delayed-auto 1>> %logfile% 2>>&1
 sc config srv2 start= delayed-auto 1>> %logfile% 2>>&1
-powershell "Enable-NetAdapterBinding -Name * -ComponentID 'ms_server' -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Enable-NetAdapterBinding -Name * -ComponentID 'ms_server' -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4571,8 +4812,8 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить средство записи XPS документов и печать в PDF.%clr%[92m
 @echo Отключить средство записи XPS документов и печать в PDF. 1>> %logfile%
 set timerStart=!time!
-powershell "Disable-WindowsOptionalFeature -Online -FeatureName Printing-XPSServices-Features -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
-powershell "Disable-WindowsOptionalFeature -Online -FeatureName Printing-PrintToPDFServices-Features -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-WindowsOptionalFeature -Online -FeatureName Printing-XPSServices-Features -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Disable-WindowsOptionalFeature -Online -FeatureName Printing-PrintToPDFServices-Features -NoRestart -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4580,7 +4821,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Установить кодек для воспроизведения видео в формате High Efficiency Video Coding (HEVC) или H.265 в любом видеоприложении.%clr%[92m
 @echo Установить кодек для воспроизведения видео в формате High Efficiency Video Coding (HEVC) или H.265 в любом видеоприложении. 1>> %logfile%
 set timerStart=!time!
-powershell -ExecutionPolicy Unrestricted "Add-AppxPackage -Path '%~dp0Microsoft.HEVCVideoExtension_1.0.32762.0_x64__8wekyb3d8bbwe.Appx' -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Add-AppxPackage -Path '%~dp0Microsoft.HEVCVideoExtension_1.0.42091.0_x64__8wekyb3d8bbwe.Appx' -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4604,7 +4845,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Удалить создание строки Создание процесса в планировщике событий.%clr%[92m
 @echo Удалить создание строки Создание процесса в планировщике событий. 1>> %logfile%
 set timerStart=!time!
-powershell "Remove-Item -Path $env:ProgramData\'Microsoft\Event Viewer\Views\ProcessCreation.xml' -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Remove-Item -Path $env:ProgramData\'Microsoft\Event Viewer\Views\ProcessCreation.xml' -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4614,7 +4855,7 @@ echo. 1>> %logfile%
 set timerStart=!time!
 reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging" /v "EnableModuleLogging" /f 1>> %logfile% 2>>&1
 reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v "EnableScriptBlockLogging" /f 1>> %logfile% 2>>&1
-powershell "Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames' -Name * -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames' -Name * -Force -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4622,9 +4863,12 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить диспетчер вложений, помечающий файлы, загруженные из Интернета, как небезопасные.%clr%[92m
 @echo Отключить диспетчер вложений, помечающий файлы, загруженные из Интернета, как небезопасные. 1>> %logfile%
 set timerStart=!time!
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" /v "1806" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" /v "1806" /T REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Security" /v "DisableSecuritySettingsCheck" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments" /v "HideZoneInfoOnProperties" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments" /v "SaveZoneInformation" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Associations" /v "LowRiskFileTypes" /t REG_SZ /d ".zip;.rar;.nfo;.txt;.exe;.bat;.com;.cmd;.reg;.msi;.htm;.html;.gif;.bmp;.jpg;.avi;.mpg;.mpeg;.mov;.mp3;.m3u;.wav;" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments" /v "SaveZoneInformation" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Associations" /v "LowRiskFileTypes" /t REG_SZ /d ".zip;.rar;.nfo;.txt;.exe;.bat;.com;.cmd;.reg;.msi;.htm;.html;.gif;.bmp;.jpg;.avi;.mpg;.mpeg;.mov;.mp3;.m3u;.wav;" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4650,31 +4894,38 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить оптимизацию доставки P2P Центра обновления Windows компьютерам в локальной сети.%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m полное отключение приводит к ошибке при загрузке с магазина Windows.
-@echo Отключить оптимизацию доставки P2P Центра обновления Windows компьютерам в локальной сети. Предупреждение: полное отключение приводит к ошибке при загрузке с магазина Windows). 1>> %logfile%
+@echo %clr%[36m Загружать обновления Windows только с узлов локальной сети и серверов Microsoft.%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m полное отключение приводит к ошибке при загрузке с магазина Windows.
+@echo Загружать обновления Windows только с узлов локальной сети и серверов Microsoft. Предупреждение: полное отключение приводит к ошибке при загрузке с магазина Windows). 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" /v "DODownloadMode" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config" /v "DODownloadMode" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" /v "DODownloadMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config" /v "DODownloadMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization" /v "SystemSettingsDownloadMode" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" /v "SystemSettingsDownloadMode" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить потребительский опыт от Microsoft.%clr%[92m
-@echo Отключить потребительский опыт от Microsoft. 1>> %logfile%
+@echo %clr%[36m Отключить проецирование (подключение) к устройству и запроса пин-кода для сопряжения.%clr%[92m
+@echo Отключить проецирование (подключение) к устройству и запроса пин-кода для сопряжения. 1>> %logfile%
 set timerStart=!time!
-reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableTailoredExperiencesWithDiagnosticData" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "AllowProjectionToPC" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "RequirePinForPairing" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\WirelessDisplay" /v "EnforcePinBasedPairing" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\PresentationSettings" /v "NoPresentationSettings" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Отключить автоматическое обновление драйверов (требуется для установки специфичных или устаревших драйверов для устройств).%clr%[92m
-@echo Отключить автоматическое обновление драйверов (требуется для установки специфичных или устаревших драйверов для устройств). 1>> %logfile%
+@echo %clr%[36m Отключить Windows Spotlight для обеспечения конфиденциальности.%clr%[92m
+@echo Отключить Windows Spotlight для обеспечения конфиденциальности. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions" /v "DenyDeviceIDs" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions" /v "DenyDeviceIDsRetroactive" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Metadata" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "ConfigureWindowsSpotlight" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableTailoredExperiencesWithDiagnosticData" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableThirdPartySuggestions" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsSpotlightFeatures" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsSpotlightOnActionCenter" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsSpotlightWindowsWelcomeExperience" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "IncludeEnterpriseSpotlight" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4683,6 +4934,12 @@ echo. 1>> %logfile%
 @echo Выставить сервера pool.ntp.org для синхронизации времени. 1>> %logfile%
 set timerStart=!time!
 w32tm /config /syncfromflags:manual /manualpeerlist:"0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org" 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\W32time\Parameters" /v "Type" /t REG_SZ /d "NTP" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\W32time\TimeProviders\NtpClient" /v "CrossSiteSyncFlags" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\W32time\TimeProviders\NtpClient" /v "EventLogFlags" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\W32time\TimeProviders\NtpClient" /v "ResolvePeerBackoffMaxTimes" /t REG_DWORD /d "7" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\W32time\TimeProviders\NtpClient" /v "ResolvePeerBackoffMinutes" /t REG_DWORD /d "15" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\W32time\TimeProviders\NtpClient" /v "SpecialPollInterval" /t REG_DWORD /d "1024" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -4695,7 +4952,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Выполнить полное удаление OneDrive.%clr%[92m
 @echo Выполнить полное удаление OneDrive. 1>> %logfile%
 set timerStart=!time!
@@ -4711,7 +4968,7 @@ if "%arch%"=="x64" (
 call :acl_file "%OneDr_x64%"
 del /f /q "%OneDr_x64%" 1>> %logfile% 2>>&1
 reg add "HKCR\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg delete "HKCU\Software\Classes\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /f 1>> %logfile% 2>>&1
+reg delete "HKCU\SOFTWARE\Classes\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\Onedrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\Onedrive" /v "DisableLibrariesDefaultSaveToOneDrive" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\Onedrive" /v "DisableMeteredNetworkFileSync" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -4719,14 +4976,13 @@ reg add "HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\Onedrive" /v "Disa
 del /f /q "%LocalAppData%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe" 1>> %logfile% 2>>&1
 rmdir /s /q "%UserProfile%\OneDrive" "%ProgramData%\Microsoft OneDrive" "%LocalAppData%\Microsoft\OneDrive" "%HomeDrive%\OneDriveTemp" 1>> %logfile% 2>>&1
 del /f /q "%AppData%\Microsoft\Windows\Start Menu\Programs\OneDrive.lnk" 1>> %logfile% 2>>&1
-powershell "Get-ScheduledTask -TaskPath '\' -TaskName 'OneDrive*' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false" 1>> %logfile% 2>>&1
+%PS% "Get-ScheduledTask -TaskPath '\' -TaskName 'OneDrive*' -ea SilentlyContinue | Unregister-ScheduledTask -Confirm:$false" 1>> %logfile% 2>>&1
 reg add "HKCR\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg delete "HKCU\Software\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /f 1>> %logfile% 2>>&1
+reg delete "HKCU\SOFTWARE\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /f 1>> %logfile% 2>>&1
 call :acl_folders "%SystemRoot%\WinSxS\*onedrive*"
-powershell "foreach ($item in (Get-ChildItem $Env:SystemRoot\WinSxS\*onedrive*)) {Remove-Item -Recurse -Force $item.FullName}" 1>> %logfile% 2>>&1
+%PS% "foreach ($item in (Get-ChildItem $Env:SystemRoot\WinSxS\*onedrive*)) {Remove-Item -Recurse -Force $item.FullName -ea SilentlyContinue}" 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SkyDrive" /v "DisableFileSync" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\OneDrive" /v "DisablePersonalSync" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableMeteredNetworkFileSync" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableLibrariesDefaultSaveToOneDrive" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -4734,20 +4990,19 @@ reg delete "HKCU\Environment" /v "OneDrive" /f 1>> %logfile% 2>>&1
 reg delete "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "OneDrive" /f 1>> %logfile% 2>>&1
 reg delete "HKU\.DEFAULT\Environment" /v "OneDrive" /f 1>> %logfile% 2>>&1
 reg delete "HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "OneDriveSetup" /f 1>> %logfile% 2>>&1
+:: Драйвер фильтра облачных файлов OneDrive.
 call :disable_svc CldFlt
+:: Служба платформы подключенных пользовательских устройств и сценариев Universal Glass.
 call :disable_svc CDPUserSvc
-call :disable_svc OneSyncSvc
-call :disable_svc PimIndexMaintenanceSvc
-call :disable_svc UnistoreSvc
-call :disable_svc UserDataSvc
-call :disable_svc MessagingService
-::call :disable_svc WpnUserService
-::call :disable_svc WpnService
+:: Пользовательская служба Push-уведомлений. Именно она отвечает за центр уведомлений.
+:: call :disable_svc WpnUserService
+:: Служба системы push-уведомлений Windows.
+:: call :disable_svc WpnService
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Удалить поиск Windows.%clr%[92m
 @echo Удалить поиск Windows. 1>> %logfile%
 set timerStart=!time!
@@ -4756,7 +5011,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Удалить UWP приложения.%clr%[92m
 @echo Удалить UWP приложения. 1>> %logfile%
 set timerStart=!time!
@@ -4824,7 +5079,7 @@ call :remove_uwp WindowsScan
 call :remove_uwp Microsoft.SkypeApp
 call :remove_uwp Microsoft.MicrosoftStickyNotes
 call :remove_uwp Microsoft.Getstarted
-::call :remove_uwp Microsoft.WindowsSoundRecorder
+:: call :remove_uwp Microsoft.WindowsSoundRecorder
 call :remove_uwp Microsoft.BingWeather
 call :remove_uwp Microsoft.YourPhone
 call :remove_uwp Microsoft.ZuneMusic
@@ -4833,7 +5088,7 @@ call :remove_uwp Microsoft.XboxApp
 call :remove_uwp Microsoft.XboxGameOverlay
 call :remove_uwp Microsoft.XboxGamingOverlay
 call :remove_uwp Microsoft.XboxSpeechToTextOverlay
-:: другие приложения
+:: Другие приложения
 call :remove_uwp PicsArt-PhotoStudio
 call :remove_uwp ActiproSoftwareLLC
 call :remove_uwp AdobePhotoshopExpress
@@ -4878,7 +5133,7 @@ call :remove_uwp king.com
 call :remove_uwp king.com.BubbleWitch3Saga
 call :remove_uwp king.com.CandyCrushSaga
 call :remove_uwp king.com.CandyCrushSodaSaga
-:: принудительное удаление приложений
+:: Принудительное удаление приложений
 call :remove_uwp_hard InputApp
 call :remove_uwp_hard People
 call :remove_uwp_hard Microsoft.AAD.BrokerPlugin
@@ -4889,11 +5144,11 @@ call :remove_uwp_hard Microsoft.EdgeDevtoolsPlugin
 call :remove_uwp_hard Microsoft.MicrosoftEdge
 call :remove_uwp_hard Microsoft.MicrosoftEdgeDevToolsClient
 call :remove_uwp_hard Microsoft.PPIProjection
-::Microsoft.Windows.Apprep.ChxApp (Часть дефендера и Edge. Множество настроек в Параметрах и очень много в ГП.)
+:: Microsoft.Windows.Apprep.ChxApp (Часть дефендера и Edge. Множество настроек в Параметрах и очень много в ГП.)
 call :remove_uwp_hard Microsoft.Windows.AssignedAccessLockApp
 call :remove_uwp_hard Microsoft.Windows.CallingShellApp
 call :remove_uwp_hard Microsoft.Windows.CapturePicker
-::call :remove_uwp_hard Microsoft.Windows.CloudExperienceHost (используется облачными приложениями)
+:: call :remove_uwp_hard Microsoft.Windows.CloudExperienceHost (используется облачными приложениями)
 call :remove_uwp_hard Microsoft-Windows-ContactSupport
 call :remove_uwp_hard Microsoft.Windows.ContentDeliveryManager
 call :remove_uwp_hard Microsoft.Windows.Cortana
@@ -4905,7 +5160,7 @@ call :remove_uwp_hard Microsoft.Windows.PeopleExperienceHost
 call :remove_uwp_hard Microsoft.Windows.PinningConfirmationDialog
 call :remove_uwp_hard Microsoft.Windows.SecHealthUI
 call :remove_uwp_hard Microsoft.Windows.SecureAssessmentBrowser
-call :remove_uwp_hard Microsoft.Windows.XGpuEjectDialog
+:: call :remove_uwp_hard Microsoft.Windows.XGpuEjectDialog (безопасное извлечение устройства)
 call :remove_uwp_hard Microsoft-Windows-Help
 call :remove_uwp_hard Microsoft.WindowsFeedback
 call :remove_uwp_hard Microsoft.WindowsFeedbackHub
@@ -4918,7 +5173,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Использовать Windows Photo Viewer.%clr%[92m
 @echo Использовать Windows Photo Viewer. 1>> %logfile%
 set timerStart=!time!
@@ -4955,7 +5210,7 @@ echo. 1>> %logfile%
 set timerStart=!time!
 call :disable_svc DiagTrack
 call :disable_svc diagnosticshub.standardcollector.service
-powershell "Get-NetFirewallRule -Group DiagTrack | Set-NetFirewallRule -Enabled False -Action Block -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Get-NetFirewallRule -Group DiagTrack | Set-NetFirewallRule -Enabled False -Action Block -wa SilentlyContinue" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5014,9 +5269,9 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
-@echo %clr%[36m Полное отключение всех видов телеметрии.%clr%[92m
-@echo Полное отключение всех видов телеметрии. 1>> %logfile%
+:: #########################################################################################################################################################################################################################
+@echo %clr%[36m Полное отключение всех видов телеметрии Windows.%clr%[92m
+@echo Полное отключение всех видов телеметрии Windows. 1>> %logfile%
 set timerStart=!time!
 if "%arch%"=="x64" (
 reg add "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -5035,15 +5290,9 @@ reg add "HKCU\SOFTWARE\Microsoft\Assistance\Client\1.0\Settings" /v "ImplicitFee
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v "AllowTelemetry" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v "DisableInventory" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput" /v "AllowLinguisticDataCollection" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Policies\Microsoft\Office\15.0\osm" /v "Enablelogging" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Policies\Microsoft\Office\15.0\osm" /v "EnableUpload" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Policies\Microsoft\Office\16.0\osm" /v "Enablelogging" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKCU\SOFTWARE\Policies\Microsoft\Office\16.0\osm" /v "EnableUpload" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Microsoft\ClickToRun\OverRide" /v "DisableLogManagement" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" /v "TimerInterval" /t REG_SZ /d "900000" /f 1>> %logfile% 2>>&1
-::reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\AutoLogger-Diagtrack-Listener" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-::call :acl_file "%ProgramData%\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl"
-::del /f /q %ProgramData%\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl 1>> %logfile% 2>>&1
+:: reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\AutoLogger-Diagtrack-Listener" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+:: call :acl_file "%ProgramData%\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl"
+:: del /f /q %ProgramData%\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Application-Experience/Program-Compatibility-Assistant" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Application-Experience/Program-Compatibility-Troubleshooter" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Application-Experience/Program-Inventory" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -5060,13 +5309,13 @@ for /f "tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVe
 reg add "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\features\%UID%" /v "FeatureStates" /t REG_SZ /d "828" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Suggested Sites" /v "Enabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer" /v "AllowServicePoweredQSA" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\CurrentVersion\Explorer\AutoComplete" /v "AutoSuggest" /t REG_SZ /d "no" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\Internet Explorer\Infodelivery\Restrictions" /v "NoUpdateCheck" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\Internet Explorer\Geolocation" /v "PolicyDisableGeolocation" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\MicrosoftEdge\Main" /v "Use FormSuggest" /t REG_SZ /d "no" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\MicrosoftEdge\Main" /v "DoNotTrack" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\MicrosoftEdge\Main" /v "FormSuggest Passwords" /t REG_SZ /d "no" /f 1>> %logfile% 2>>&1
-reg add "HKLM\Software\Policies\Microsoft\MicrosoftEdge\SearchScopes" /v "ShowSearchSuggestionsGlobal" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Explorer\AutoComplete" /v "AutoSuggest" /t REG_SZ /d "no" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Infodelivery\Restrictions" /v "NoUpdateCheck" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Geolocation" /v "PolicyDisableGeolocation" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v "Use FormSuggest" /t REG_SZ /d "no" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v "DoNotTrack" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v "FormSuggest Passwords" /t REG_SZ /d "no" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\SearchScopes" /v "ShowSearchSuggestionsGlobal" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\DeviceAccess\Global\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\DeviceAccess\Global\{E5323777-F976-4f5b-9B55-B94699C46E44}" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\DeviceAccess\Global\{2EEF81BE-33FA-4800-9670-1CD474972C3F}" /v "Value" /t REG_SZ /d "Deny" /f 1>> %logfile% 2>>&1
@@ -5083,7 +5332,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v "NoLockScr
 call :disable_task "\Microsoft\Windows\Customer Experience Improvement Program\HypervisorFlightingTask"
 call :disable_task "\Microsoft\Windows\Application Experience\ProgramDataUpdater"
 call :disable_task "\Microsoft\Windows\Autochk\Proxy"
-call :disable_task "\Microsoft\Windows\AppID\SmartScreenSpecific"
+:: call :disable_task "\Microsoft\Windows\AppID\SmartScreenSpecific"
 call :disable_task "\Microsoft\Windows\Application Experience\AitAgent"
 call :disable_task "\Microsoft\Windows\Application Experience\StartupAppTask"
 call :disable_task "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask"
@@ -5113,10 +5362,8 @@ call :disable_task "\Microsoft\Windows\Maps\MapsUpdateTask"
 call :disable_task "\Microsoft\Windows\Maps\MapsToastTask"
 call :disable_task "\Microsoft\Windows\Chkdsk\ProactiveScan"
 call :disable_task_sudo "\Microsoft\Windows\Chkdsk\SyspartRepair"
-call :disable_task_sudo "\Microsoft\Windows\SettingSync\BackgroundUpLoadTask"
 call :disable_task_sudo "\Microsoft\Windows\Device Setup\Metadata Refresh"
 call :disable_task "\Microsoft\Windows\Flighting\OneSettings\RefreshCache"
-call :disable_task "\Microsoft\Windows\SettingSync\NetworkStateChangeTask"
 call :disable_task_sudo "\Microsoft\Windows\DeviceDirectoryClient\HandleCommand"
 call :disable_task_sudo "\Microsoft\Windows\DeviceDirectoryClient\HandleWnsCommand"
 call :disable_task_sudo "\Microsoft\Windows\DeviceDirectoryClient\IntegrityCheck"
@@ -5152,6 +5399,61 @@ call :disable_task "\Microsoft\Windows\ErrorDetails\ErrorDetailsUpdate"
 call :disable_task "\Microsoft\Windows\SpacePort\SpaceAgentTask"
 call :disable_task "\Microsoft\Windows\SpacePort\SpaceManagerTask"
 call :disable_task "\Microsoft\Windows\Speech\SpeechModelDownloadTask"
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\EventLog-AirSpaceChannel" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\AirSpaceChannel" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+del /f /q "%SystemRoot%\System32\Winevt\Logs\AirSpaceChannel.etl" 1>> %logfile% 2>>&1
+auditpol /set /subcategory:"{0CCE9226-69AE-11D9-BED3-505054503030}" /success:disable /failure:disable 1>> %logfile% 2>>&1
+:: Служба заливает в облако все данные от приложений.
+call :disable_svc DcpSvc
+:: Служба кошелька.
+call :disable_svc WalletService
+:: Отчеты о проблемах и их решениях.
+call :disable_svc wercplsupport
+:: Служба поддержки совместимости программ.
+call :disable_svc PcaSvc
+:: Служба предварительной оценки Windows Insider.
+call :disable_svc wisvc
+:: Служба демонстрации магазина.
+call :disable_svc RetailDemo
+:: Служба регистрации ошибок Windows.
+call :disable_svc diagsvc
+:: Управление профилями и учетными записями на настроенном устройстве с общим ПК.
+call :disable_svc shpamsvc
+:: Служба удалённых рабочих столов.
+:: call :disable_svc TermService
+:: Перенаправитель портов пользовательского режима служб удаленных рабочих столов.
+:: call :disable_svc UmRdpService
+:: Служба настройки сервера удаленных рабочих столов.
+:: call :disable_svc SessionEnv
+:: Рекомендованная служба устранения неполадок.
+call :disable_svc TroubleshootingSvc
+:: Cлужба для синхронизации почты, контактов, календаря и некоторых других пользовательских данных.
+call :disable_svc OneSyncSvc
+:: Служба, отвечающая за работу приложения Сообщения, которое вы синхронизируете между своим устройством.
+call :disable_svc MessagingService
+:: Cлужба индексации поиска по контактам на мобильных устройствах.
+call :disable_svc PimIndexMaintenanceSvc
+:: Служба доступа к данным пользователя (UserDataSvc), которая позволяет приложениям в песочнице получать доступ к данным пользователя, включая контактную информацию, календари, сообщения и другое содержимое.
+call :disable_svc UserDataSvc
+:: Cлужба хранения пользовательских данных, таких как контакты, календари, сообщения.
+call :disable_svc UnistoreSvc
+:: Пользовательская служба DVR для игр и трансляции.
+call :disable_svc BcastDVRUserService
+:: Брокер монитора времени выполнения System Guard.
+call :disable_svc_sudo Sgrmbroker
+:: Служба диспетчера скачанных карт.
+call :disable_svc MapsBroker
+:: Пользовательская служба буфера обмена.
+call :disable_svc cbdhsvc
+:: Смарт-карты для Windows.
+call :disable_svc SCardSvr
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Отключить задачи телеметрии МедиаЦентра.%clr%[92m
+@echo Отключить задачи телеметрии МедиаЦентра. 1>> %logfile%
+set timerStart=!time!
 call :disable_task "\Microsoft\Windows\media center\activateWindowssearch"
 call :disable_task "\Microsoft\Windows\media center\configureinternettimeservice"
 call :disable_task "\Microsoft\Windows\media center\dispatchrecoverytasks"
@@ -5171,6 +5473,59 @@ call :disable_task "\Microsoft\Windows\media center\registersearch"
 call :disable_task "\Microsoft\Windows\media center\reindexsearchroot"
 call :disable_task "\Microsoft\Windows\media center\sqlliterecoverytask"
 call :disable_task "\Microsoft\Windows\media center\updaterecordpath"
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Отключить задачи телеметрии синхронизации настроек.%clr%[92m
+@echo Отключить задачи телеметрии синхронизации настроек. 1>> %logfile%
+set timerStart=!time!
+call :disable_task_sudo "\Microsoft\Windows\SettingSync\BackgroundUpLoadTask"
+call :disable_task "\Microsoft\Windows\SettingSync\BackupTask"
+call :disable_task "\Microsoft\Windows\SettingSync\NetworkStateChangeTask"
+del /f /q /s "%SystemRoot%\SysNative\Tasks\Microsoft\Windows\SettingSync\*" 1>> %logfile% 2>>&1
+del /f /q /s "%SystemRoot%\System32\Tasks\Microsoft\Windows\SettingSync\*" 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Отключить задачи телеметрии Microsoft Office.%clr%[92m
+@echo Отключить задачи телеметрии Microsoft Office. 1>> %logfile%
+set timerStart=!time!
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\15.0\osm" /v "enablelogging" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\15.0\osm" /v "enableupload" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\feedback" /v "enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\feedback" /v "includescreenshot" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\general" /v "notrack" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\general" /v "optindisable" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\general" /v "shownfirstrunoptin" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\general" /v "skydrivesigninoption" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\officeupdate" /v "onlinerepair" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\officeupdate" /v "fallbacktocdn" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\services\fax" /v "nofax" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\signin" /v "signinoptions" /t REG_DWORD /d "3" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\common\ptwatson" /v "ptwoptin" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\firstrun" /v "bootedrtm" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\firstrun" /v "disablemovie" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm" /v "enablefileobfuscation" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm" /v "enablelogging" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm" /v "enableupload" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "accesssolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "olksolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "onenotesolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "pptsolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "projectsolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "publishersolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "visiosolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "wdsolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedapplications" /v "xlsolution" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedsolutiontypes" /v "agave" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedsolutiontypes" /v "appaddins" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedsolutiontypes" /v "comaddins" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedsolutiontypes" /v "documentfiles" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Policies\Microsoft\office\16.0\osm\preventedsolutiontypes" /v "templatefiles" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\ClickToRun\OverRide" /v "DisableLogManagement" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" /v "TimerInterval" /t REG_SZ /d "900000" /f 1>> %logfile% 2>>&1
 call :disable_task "\Microsoft\Office\Office ClickToRun Service Monitor"
 call :disable_task "\Microsoft\Office\OfficeTelemetryAgentFallBack2016"
 call :disable_task "\Microsoft\Office\OfficeTelemetryAgentLogOn2016"
@@ -5179,33 +5534,6 @@ call :disable_task "\Microsoft\Office\OfficeTelemetry\OfficeTelemetryAgentLogOn2
 call :disable_task "\Microsoft\Office\Office 15 Subscription Heartbeat"
 call :disable_task "\Microsoft\Office\OfficeTelemetryAgentFallBack"
 call :disable_task "\Microsoft\Office\OfficeTelemetryAgentLogOn"
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\EventLog-AirSpaceChannel" /v "Start" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\AirSpaceChannel" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-del /f /q "%SystemRoot%\System32\Winevt\Logs\AirSpaceChannel.etl" 1>> %logfile% 2>>&1
-del /f /q /s "%SystemRoot%\SysNative\Tasks\Microsoft\Windows\SettingSync\*" 1>> %logfile% 2>>&1
-del /f /q /s "%SystemRoot%\System32\Tasks\Microsoft\Windows\SettingSync\*" 1>> %logfile% 2>>&1
-auditpol /set /subcategory:"{0CCE9226-69AE-11D9-BED3-505054503030}" /success:disable /failure:disable 1>> %logfile% 2>>&1
-call :disable_svc DcpSvc
-call :disable_svc WalletService
-call :disable_svc wercplsupport
-call :disable_svc PcaSvc
-call :disable_svc wisvc
-call :disable_svc RetailDemo
-call :disable_svc diagsvc
-call :disable_svc shpamsvc
-call :disable_svc TermService
-call :disable_svc UmRdpService
-call :disable_svc SessionEnv
-call :disable_svc TroubleshootingSvc
-call :disable_svc OneSyncSvc
-call :disable_svc MessagingService
-call :disable_svc PimIndexMaintenanceSvc
-call :disable_svc UserDataSvc
-call :disable_svc UnistoreSvc
-call :disable_svc BcastDVRUserService
-call :disable_svc_sudo Sgrmbroker
-call :disable_svc cbdhsvc
-call :disable_svc SCardSvr
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5268,7 +5596,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Включить перечислитель виртуальных дисков.%clr%[92m
 @echo Включить перечислитель виртуальных дисков. 1>> %logfile%
 set timerStart=!time!
@@ -5325,7 +5653,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Включить восстановление системы и сброс до заводских настроек (Windows RE).%clr%[92m
 @echo Включить восстановление системы и сброс до заводских настроек (Windows RE). 1>> %logfile%
 set timerStart=!time!
@@ -5347,7 +5675,7 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Установить новые возможности от Windows 10X (только для сборок 20H1 и выше).%clr%[92m
 @echo Установить новые возможности от Windows 10X (только для сборок 20H1 и выше). 1>> %logfile%
 set timerStart=!time!
@@ -5482,14 +5810,14 @@ set timerStart=!time!
 :: Windows 10X Boot Animation
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\BootControl" /v "BootProgressAnimation" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 :: Windows Rounded UI
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search\Flighting" /v "ImmersiveSearch" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search\Flighting\Override" /v "ImmersiveSearchFull" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search\Flighting\Override" /v "CenterScreenRoundedCornerRadius" /t REG_DWORD /d "9" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\Flighting" /v "ImmersiveSearch" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\Flighting\Override" /v "ImmersiveSearchFull" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\Flighting\Override" /v "CenterScreenRoundedCornerRadius" /t REG_DWORD /d "9" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Установить расширенное контекстное меню?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
@@ -5534,73 +5862,74 @@ if !errorlevel!==1 (
 	start "" /wait %~dp0\..\Installers\TopMost.exe
 	start "" /wait %~dp0\..\Installers\UpdateTime.exe
 	start "" /wait %~dp0\..\Installers\WebCam.exe
-	REM ; Выставить группировку по типу файловой системы в Мой Компьютер
-	reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\2\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "Sort" /t REG_BINARY /d "0000000000000000000000000000000001000000354B179BFF40D211A27E00C04FC308710400000001000000" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\2\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "GroupView" /t REG_DWORD /d "4294967295" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\2\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "GroupByKey:FMTID" /t REG_SZ /d "{9B174B35-40FF-11D2-A27E-00C04FC30871}" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\2\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "GroupByKey:PID" /t REG_DWORD /d "4" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage\AppLaunch" /v "Microsoft.Windows.Explorer" /t REG_DWORD /d "90" /f 1>> %logfile% 2>>&1
-	REM ; Стать владельцем по правой кнопке мыши
+	:: Выставить группировку по типу файловой системы в Мой Компьютер
+	reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\1\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "GroupByKey:FMTID" /t REG_SZ /d "{9B174B35-40FF-11D2-A27E-00C04FC30871}" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\1\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "GroupByKey:PID" /t REG_DWORD /d "4" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\1\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "Sort" /t REG_BINARY /d "0000000000000000000000000000000001000000354B179BFF40D211A27E00C04FC308710400000001000000" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\2\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "GroupByKey:FMTID" /t REG_SZ /d "{9B174B35-40FF-11D2-A27E-00C04FC30871}" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\2\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "GroupByKey:PID" /t REG_DWORD /d "4" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\2\Shell\{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}" /v "Sort" /t REG_BINARY /d "0000000000000000000000000000000001000000354B179BFF40D211A27E00C04FC308710400000001000000" /f 1>> %logfile% 2>>&1
+	:: Стать владельцем по правой кнопке мыши
 	reg add "HKCR\*\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена владельца" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\*\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "file_takeown_trust;file_takeown_sys;file_takeown_adm" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\*\shell\TakeOwn" /v "Icon" /t REG_SZ /d "imageres.dll,117" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\*\shell\TakeOwn" /v "NoWorkingDirectory" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\*\shell\TakeOwn" /v "Position" /t REG_SZ /d "middle" /f 1>> %logfile% 2>>&1
-	REM ; Добавление меню для папок
+	:: Добавление меню для папок
 	reg add "HKCR\Directory\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена владельца" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "folder_takeown_trust;folder_takeown_sys;folder_takeown_adm" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\TakeOwn" /v "Icon" /t REG_SZ /d "imageres.dll,117" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\TakeOwn" /v "NoWorkingDirectory" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\TakeOwn" /v "Position" /t REG_SZ /d "middle" /f 1>> %logfile% 2>>&1
-	REM ; Добавление меню для дисков
+	:: Добавление меню для дисков
 	reg add "HKCR\Drive\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена владельца" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "folder_takeown_trust;folder_takeown_sys;folder_takeown_adm" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\TakeOwn" /v "Icon" /t REG_SZ /d "imageres.dll,117" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\TakeOwn" /v "NoWorkingDirectory" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\TakeOwn" /v "Position" /t REG_SZ /d "middle" /f 1>> %logfile% 2>>&1
-	REM ; Название пункта меню установки владельца TrustedInstaller для файлов
+	:: Название пункта меню установки владельца TrustedInstaller для файлов
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust" /ve /t REG_SZ /d "Назначить владельцем TrustedInstaller" /f 1>> %logfile% 2>>&1
-	REM ; Команда установки владельца TrustedInstaller для файлов
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
-	REM ; Название пункта меню установки владельца Система для файлов
+	:: Команда установки владельца TrustedInstaller для файлов
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
+	:: Название пункта меню установки владельца Система для файлов
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys" /ve /t REG_SZ /d "Назначить владельцем Система" /f 1>> %logfile% 2>>&1
-	REM ; Команда установки владельца Система для файлов
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
+	:: Команда установки владельца Система для файлов
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
-	REM ; Название пункта меню установки владельца Администраторы для файлов
+	:: Название пункта меню установки владельца Администраторы для файлов
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm" /ve /t REG_SZ /d "Назначить владельцем Администраторы" /f 1>> %logfile% 2>>&1
-	REM ; Команда установки владельца Администраторы для файлов
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
-	REM ; Название пункта меню установки владельца TrustedInstaller для файлов, дисков и папок
+	:: Команда установки владельца Администраторы для файлов
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
+	:: Название пункта меню установки владельца TrustedInstaller для файлов, дисков и папок
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust" /ve /t REG_SZ /d "Назначить владельцем TrustedInstaller" /f 1>> %logfile% 2>>&1
-	REM ; Команда установки владельца TrustedInstaller для файлов, дисков и папок
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
-	REM ; Название пункта меню установки владельца Система для файлов, дисков и папок
+	:: Команда установки владельца TrustedInstaller для файлов, дисков и папок
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
+	:: Название пункта меню установки владельца Система для файлов, дисков и папок
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys" /ve /t REG_SZ /d "Назначить владельцем Система" /f 1>> %logfile% 2>>&1
-	REM ; Команда установки владельца Система для файлов, дисков и папок
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
-	REM ; Название пункта меню установки владельца Администраторы для файлов, дисков и папок
+	:: Команда установки владельца Система для файлов, дисков и папок
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
+	:: Название пункта меню установки владельца Администраторы для файлов, дисков и папок
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm" /ve /t REG_SZ /d "Назначить владельцем Администраторы" /f 1>> %logfile% 2>>&1
-	REM ; Команда установки владельца Администраторы для файлов, дисков и папок
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
-	REM ; Программы и компоненты в папке Компьютер
+	:: Команда установки владельца Администраторы для файлов, дисков и папок
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
+	:: Программы и компоненты в папке Компьютер
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{D20EA4E1-3957-11d2-A40B-0C5020524153}" /f 1>> %logfile% 2>>&1
-	REM ; Сетевые подключения в папке Компьютер
+	:: Сетевые подключения в папке Компьютер
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{7b81be6a-ce2b-4676-a29e-eb907a5126c5}" /f 1>> %logfile% 2>>&1
-	REM ; Корзина в папке Компьютер
+	:: Корзина в папке Компьютер
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{7007ACC7-3202-11D1-AAD2-00805FC1270E}" /f 1>> %logfile% 2>>&1
-	REM ; Сеть в папке Компьютер
+	:: Сеть в папке Компьютер
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{645FF040-5081-101B-9F08-00AA002F954E}" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{00000000-0000-0000-0000-123456725801}" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725801}" /ve /t REG_SZ /d "Сеть рабочей группы" /f 1>> %logfile% 2>>&1
@@ -5609,7 +5938,7 @@ if !errorlevel!==1 (
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725801}\InProcServer32" /ve /t REG_SZ /d "shell32.dll" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725801}\InProcServer32" /v "ThreadingModel" /t REG_SZ /d "Apartment" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725801}\Shell\Open\Command" /ve /t REG_SZ /d "\"explorer.exe\" shell:::{208D2C60-3AEA-1069-A2D7-08002B30309D}" /f 1>> %logfile% 2>>&1
-	REM ; Все задачи в папке Компьютер
+	:: Все задачи в папке Компьютер
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{00000000-0000-0000-0000-123456725802}" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725802}" /ve /t REG_SZ /d "Полный список настраиваемых параметров" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725802}" /v "Infotip" /t REG_SZ /d "Доступ ко всем параметрам системы в одной директорий" /f 1>> %logfile% 2>>&1
@@ -5617,14 +5946,14 @@ if !errorlevel!==1 (
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725802}\InProcServer32" /ve /t REG_SZ /d "shell32.dll" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725802}\InProcServer32" /v "ThreadingModel" /t REG_SZ /d "Apartment" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456725802}\Shell\Open\Command" /ve /t REG_SZ /d "\"explorer.exe\" shell:::{ED7BA470-8E54-465E-825C-99712043E01C}" /f 1>> %logfile% 2>>&1
-	REM ; Таблица символов в папке Компьютер
+	:: Таблица символов в папке Компьютер
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{00000000-0000-0000-0000-123456756840}" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456756840}" /ve /t REG_SZ /d "Таблица символов" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456756840}" /v "InfoTip" /t REG_SZ /d "Таблица символов используется для добавления в текст дополнительных символов." /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456756840}" /v "System.ControlPanel.Category" /t REG_SZ /d "9" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456756840}\DefaultIcon" /ve /t REG_SZ /d "charmap.exe,0" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{00000000-0000-0000-0000-123456756840}\Shell\Open\command" /ve /t REG_SZ /d "charmap.exe" /f 1>> %logfile% 2>>&1
-	REM ; Создание пункта "Регистрация" в меню DLL или OCX-файлов
+	:: Создание пункта "Регистрация" в меню DLL или OCX-файлов
 	reg add "HKCR\dllfile\Shell\DLLReg" /v "Icon" /t REG_SZ /d "shell32.dll,-153" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\dllfile\Shell\DLLReg" /ve /t REG_SZ /d "Зарегистрировать DLL файл в системе" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\dllfile\Shell\DLLReg\command" /ve /t REG_SZ /d "devxexec.exe /user:System \"regsvr32.exe \"%%1\"\"" /f 1>> %logfile% 2>>&1
@@ -5634,57 +5963,57 @@ if !errorlevel!==1 (
 	reg add "HKCR\ocxfile\Shell\OCXReg" /v "Icon" /t REG_SZ /d "shell32.dll,-153" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\ocxfile\Shell\OCXReg" /ve /t REG_SZ /d "Зарегистрировать OCX файл в системе" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\ocxfile\Shell\OCXReg\command" /ve /t REG_SZ /d "devxexec.exe /user:System \"regsvr32.exe \"%%1\"\"" /f 1>> %logfile% 2>>&1
-	REM ; Добавление пунктов "Запуск от имени администратора" и "Извлечь файлы из пакета" в контекстное меню MSI файлов
+	:: Добавление пунктов "Запуск от имени администратора" и "Извлечь файлы из пакета" в контекстное меню MSI файлов
 	reg add "HKCR\Msi.Package\Shell\runas" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Msi.Package\shell\runas\Command" /ve /t REG_EXPAND_SZ /d "\"%SystemRoot%\System32\msiexec.exe\" /i \"%%1\" %%*" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Classes\Msi.Package\shell\ExtractAll" /ve /t REG_SZ /d "Извлечь файлы из пакета" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Classes\Msi.Package\shell\ExtractAll" /v "icon" /t REG_SZ /d "msiexec.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Classes\Msi.Package\shell\ExtractAll\command" /ve /t REG_SZ /d "msiexec.exe /a \"%%1\" /qb TARGETDIR=\"%%1 Contents\"" /f 1>> %logfile% 2>>&1
-	REM ; Удаления пункта Сменить пароль из диалогового окна Безопасность Windows
-	reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v "DisableChangePassword" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-	REM ; Добавление в Панель управления оснастки "Учетная запись опытного пользователя" (netplwiz), для расширенного управления учетными записями.
+	reg add "HKCU\SOFTWARE\Classes\Msi.Package\shell\ExtractAll" /ve /t REG_SZ /d "Извлечь файлы из пакета" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Classes\Msi.Package\shell\ExtractAll" /v "icon" /t REG_SZ /d "msiexec.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Classes\Msi.Package\shell\ExtractAll\command" /ve /t REG_SZ /d "msiexec.exe /a \"%%1\" /qb TARGETDIR=\"%%1 Contents\"" /f 1>> %logfile% 2>>&1
+	:: Удаления пункта Сменить пароль из диалогового окна Безопасность Windows
+	reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "DisableChangePassword" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+	:: Добавление в Панель управления оснастки "Учетная запись опытного пользователя" (netplwiz), для расширенного управления учетными записями.
 	reg add "HKCR\CLSID\{98641F47-8C25-4936-BEE4-C2CE1298969D}" /ve /t REG_SZ /d "Учетная запись опытного пользователя" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{98641F47-8C25-4936-BEE4-C2CE1298969D}" /v "InfoTip" /t REG_SZ /d "Расширенные настройки параметров учетных записей." /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{98641F47-8C25-4936-BEE4-C2CE1298969D}" /v "System.ControlPanel.Category" /t REG_SZ /d "9" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{98641F47-8C25-4936-BEE4-C2CE1298969D}\DefaultIcon" /ve /t REG_SZ /d "netplwiz.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\CLSID\{98641F47-8C25-4936-BEE4-C2CE1298969D}\Shell\Open\command" /ve /t REG_SZ /d "Control Userpasswords2" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel\NameSpace\{98641F47-8C25-4936-BEE4-C2CE1298969D}" /ve /t REG_SZ /d "Расширенные настройки параметров учетных записей" /f 1>> %logfile% 2>>&1
-	REM ; Добавление классического всплывающего меню Программы (Programs) в меню Пуск вместо меню Избранное (Favorites).
-	reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "Favorites" /t REG_SZ /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs" /f 1>> %logfile% 2>>&1
-	reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Favorites" /t REG_EXPAND_SZ /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs" /f 1>> %logfile% 2>>&1
-	REM ; Удаление пункта "Исправление неполадок совместимости" из контекстного меню ярлыков и исполняемых файлов.
+	:: Добавление классического всплывающего меню Программы (Programs) в меню Пуск вместо меню Избранное (Favorites).
+	reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "Favorites" /t REG_SZ /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs" /f 1>> %logfile% 2>>&1
+	reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "Favorites" /t REG_EXPAND_SZ /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs" /f 1>> %logfile% 2>>&1
+	:: Удаление пункта "Исправление неполадок совместимости" из контекстного меню ярлыков и исполняемых файлов.
 	reg add "HKCR\batfile\ShellEx\ContextMenuHandlers\Compatibility" /ve /t REG_SZ /d "-{1d27f844-3a1f-4410-85ac-14651078412d}" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\lnkfile\shellex\ContextMenuHandlers\Compatibility" /ve /t REG_SZ /d "-{1d27f844-3a1f-4410-85ac-14651078412d}" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\exefile\shellex\ContextMenuHandlers\Compatibility" /ve /t REG_SZ /d "-{1d27f844-3a1f-4410-85ac-14651078412d}" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\cmdfile\ShellEx\ContextMenuHandlers\Compatibility" /ve /t REG_SZ /d "-{1d27f844-3a1f-4410-85ac-14651078412d}" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Msi.Package\shellex\ContextMenuHandlers\Compatibility" /ve /t REG_SZ /d "-{1d27f844-3a1f-4410-85ac-14651078412d}" /f 1>> %logfile% 2>>&1
-	REM ; Добавление команды "Копировать как путь" в контекстном меню Проводника.
+	:: Добавление команды "Копировать как путь" в контекстном меню Проводника.
 	reg add "HKCR\AllFilesystemObjects\shell\CopyAsPathMenu" /ve /t REG_SZ /d "Копировать как путь" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\AllFilesystemObjects\shell\CopyAsPathMenu" /v "Icon" /t REG_SZ /d "shell32.dll,-242" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\AllFilesystemObjects\shell\CopyAsPathMenu\command" /ve /t REG_SZ /d "cmd /c <nul (set/p var=%%1)|clip" /f 1>> %logfile% 2>>&1
-	REM ; Создание пункта "Очистить содержимое папки"
+	:: Создание пункта "Очистить содержимое папки"
 	reg add "HKCR\Directory\shell\DeleteFolderContent" /v "MUIVerb" /t REG_SZ /d "Очистить содержимое папки" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\DeleteFolderContent" /v "Icon" /t REG_SZ /d "shell32.dll,-254" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\DeleteFolderContent\command" /ve /t REG_SZ /d "nircmdc elevate cmd /c cd /d \"%%1\" & del /s /f /q . & rmdir /s /q ." /f 1>> %logfile% 2>>&1
-	REM ; Открывать все файлы блокнотом
+	:: Открывать все файлы блокнотом
 	reg add "HKCR\*\shell\OpenWNotepad" /ve /t REG_SZ /d "Открыть в Блокноте" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\*\shell\OpenWNotepad" /v "Icon" /t REG_SZ /d "shell32.dll,-152" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\*\shell\OpenWNotepad\command" /ve /t REG_SZ /d "notepad.exe \"%%1\"" /f 1>> %logfile% 2>>&1
-	REM ; Запуск .exe файлов с пониженными правами
+	:: Запуск .exe файлов с пониженными правами
 	reg add "HKCR\exefile\shell\RunAsInvoker" /v "Icon" /t REG_SZ /d "imageres.dll,1" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\exefile\shell\RunAsInvoker" /ve /t REG_SZ /d "Запуск с пониженными правами" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\exefile\shell\RunAsInvoker\command" /ve /t REG_SZ /d "cmd.exe /c set __COMPAT_LAYER=RunAsInvoker & start \"\" \"%%1\" %%*" /f 1>> %logfile% 2>>&1
-	REM ; Очистка диска в контекстное меню дисков
+	:: Очистка диска в контекстное меню дисков
 	reg add "HKCR\Drive\shell\CleanMgr" /v "MUIVerb" /t REG_SZ /d "Очистка диска" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\CleanMgr" /v "Icon" /t REG_SZ /d "cleanmgr.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\CleanMgr" /v "Position" /t REG_SZ /d "Top" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\CleanMgr\command" /ve /t REG_SZ /d "nircmdc elevate cleanmgr.exe /lowdisk /d %%1" /f 1>> %logfile% 2>>&1
-	REM ;Пункт "Дефрагментация" в контекстное меню дисков
+	:: Пункт "Дефрагментация" в контекстное меню дисков
 	reg add "HKCR\Drive\shell\Defrag" /ve /t REG_SZ /d "Дефрагментация" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\Defrag" /v "Icon" /t REG_SZ /d "dfrgui.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\Defrag" /v "Position" /t REG_SZ /d "Top" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Drive\shell\Defrag\command" /ve /t REG_SZ /d "defrag %%1" /f 1>> %logfile% 2>>&1
-	REM ; Командная строка (вложенное меню в два пункта)
+	:: Командная строка (вложенное меню в два пункта)
 	reg add "HKCR\Directory\shell\CmdFolder" /v "MUIVerb" /t REG_SZ /d "Командная строка" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\CmdFolder" /v "SubCommands" /t REG_SZ /d "cmd_system;cmd_admin;cmd_user" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\shell\CmdFolder" /v "Icon" /t REG_SZ /d "cmd.exe" /f 1>> %logfile% 2>>&1
@@ -5705,13 +6034,13 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_admin" /ve /t REG_SZ /d "От имени администратора" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_admin" /v "Icon" /t REG_SZ /d "cmd.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_admin" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_admin\command" /ve /t REG_SZ /d "nircmdc elevate cmd /s /k pushd \"%%v\"" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_admin\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /s /k pushd \"%%v\"" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_user" /ve /t REG_SZ /d "От имени пользователя" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_user" /v "Icon" /t REG_SZ /d "cmd.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_user\command" /ve /t REG_SZ /d "cmd.exe /s /k set __COMPAT_LAYER=RunAsInvoker & pushd \"%%v\"" /f 1>> %logfile% 2>>&1
-	REM ; Цвет командной строки. С ограниченными правами 0A (зеленый текст на черном фоне) с правами администратора 0C (красный текст на черном фоне)
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_user\command" /ve /t REG_SZ /d "%SystemRoot%\system32\cmd.exe /s /k set __COMPAT_LAYER=RunAsInvoker & pushd \"%%v\"" /f 1>> %logfile% 2>>&1
+	:: Цвет командной строки. С ограниченными правами 0A (зеленый текст на черном фоне) с правами администратора 0C (красный текст на черном фоне)
 	reg add "HKLM\SOFTWARE\Microsoft\Command Processor" /v "AutoRun" /t REG_SZ /d "cls && reg query HKEY_USERS\S-1-5-19\Environment /v TEMP 2>&1 | findstr /i /c:REG_EXPAND_SZ 2>&1 >nul && (color 0C) || (color 0A)" /f 1>> %logfile% 2>>&1
-	REM ; Удалить пункт "Восстановить прежнюю версию" из контекстного меню Проводника
+	:: Удалить пункт "Восстановить прежнюю версию" из контекстного меню Проводника
 	reg delete "HKCR\AllFilesystemObjects\shellex\ContextMenuHandlers\{596AB062-B4D2-4215-9F74-E9109B0A8153}" /f 1>> %logfile% 2>>&1
 	reg delete "HKCR\Directory\shellex\ContextMenuHandlers\{596AB062-B4D2-4215-9F74-E9109B0A8153}" /f 1>> %logfile% 2>>&1
 	%SystemUser% reg add "HKCR\CLSID\{20D04FE0-3AEA-1069-A2D8-08002B30309D}\shell\CompMgmt" /v "MUIVerb" /t REG_SZ /d "Дополнительно" /f 1>> %logfile% 2>>&1
@@ -5751,14 +6080,14 @@ if !errorlevel!==1 (
 	reg add "HKCR\Directory\Background\shell\Admin" /v "Icon" /t REG_SZ /d "mmc.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\Admin" /v "Position" /t REG_SZ /d "Bottom" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\Advanced" /v "MUIVerb" /t REG_SZ /d "Дополнительно" /f 1>> %logfile% 2>>&1
-	reg add "HKCR\Directory\Background\shell\Advanced" /v "SubCommands" /t REG_SZ /d "runblock;showsysfiles;reloadex;reiconcache;fixprints;drive-clean;dpstyle;fixwin" /f 1>> %logfile% 2>>&1
+	reg add "HKCR\Directory\Background\shell\Advanced" /v "SubCommands" /t REG_SZ /d "runblock;showsysfiles;reloadex;reiconcache;fixprints;drive-clean;dpstyle;sfcfix;fixwin" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\Advanced" /v "Icon" /t REG_SZ /d "shell32.dll,-22" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\Advanced" /v "Position" /t REG_SZ /d "Bottom" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\ReIcon" /v "MUIVerb" /t REG_SZ /d "Расположение файлов рабочего стола" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\ReIcon" /v "SubCommands" /t REG_SZ /d "res_reicon;save_reicon;launch_reicon" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\ReIcon" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ReIcon\ReIcon.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\shell\ReIcon" /v "Position" /t REG_SZ /d "Bottom" /f 1>> %logfile% 2>>&1
-	REM ; Выключение компьютера через контекстное меню
+	:: Выключение компьютера через контекстное меню
 	reg add "HKCR\Directory\Background\Shell\PowerMenu" /v "MUIVerb" /t REG_SZ /d "Выключение/перезагрузка/блокировка" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\Shell\PowerMenu" /v "SubCommands" /t REG_SZ /d "keylock;lockoffmon;lock;switch;logoff;sleep;hibernate;rrestart;restart;shutdown;hybridshutdown;cancelshutdown" /f 1>> %logfile% 2>>&1
 	reg add "HKCR\Directory\Background\Shell\PowerMenu" /v "Icon" /t REG_SZ /d "shell32.dll,215" /f 1>> %logfile% 2>>&1
@@ -5813,15 +6142,15 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle" /ve /t REG_SZ /d "Очистить корзину и временные файлы" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle" /v "Icon" /t REG_SZ /d "shell32.dll,-254" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ClearTrashTemp.exe a" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk" /ve /t REG_SZ /d "Полная чистка дисков от мусора" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\ClearTrashTemp.exe a" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk" /ve /t REG_SZ /d "Полная очистка дисков от мусора" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk" /v "Icon" /t REG_SZ /d "cleanmgr.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk\command" /ve /t REG_SZ /d "nircmdc elevate cleanmgr /sageset:1 & nircmdc elevate cleanmgr /sagerun:1" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk\command" /ve /t REG_SZ /d "%SystemRoot%\system32\cmd.exe /c cleanmgr /sageset:1 & cleanmgr /sagerun:1" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg" /ve /t REG_SZ /d "Оптимизировать и сжать реестр" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\RegistryFirstAid\RFA.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\RegistryFirstAid\RFA.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\RegistryFirstAid\RFA.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\6to4" /ve /t REG_SZ /d "Удалить лишние 6to4 адаптеры" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\6to4" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\6to4" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\6to4remover.exe" /f 1>> %logfile% 2>>&1
@@ -5829,7 +6158,7 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reducemem" /ve /t REG_SZ /d "Очистить неиспользуемую память" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reducemem" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reducemem" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ReduceMemory\ReduceMemory.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reducemem\command" /ve /t REG_EXPAND_SZ /d "devxexec.exe /user:TrustedInstaller %SystemRoot%\Tools\ReduceMemory\ReduceMemory.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reducemem\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ReduceMemory\ReduceMemory.exe /O" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\speedy" /ve /t REG_SZ /d "Оптимизировать работу браузеров/скайпа" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\speedy" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\speedy" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\speedyfox.exe" /f 1>> %logfile% 2>>&1
@@ -5837,15 +6166,15 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drivetidy" /ve /t REG_SZ /d "Очистить диск от мусора" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drivetidy" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drivetidy" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\DriveTidy\DriveTidy.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drivetidy\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\DriveTidy\DriveTidy.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drivetidy\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\DriveTidy\DriveTidy.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\servopt" /ve /t REG_SZ /d "Оптимизировать службы" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\servopt" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\servopt" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\EasyServicesOptimizer\eso.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\servopt\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\EasyServicesOptimizer\eso.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\servopt\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\EasyServicesOptimizer\eso.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan" /ve /t REG_SZ /d "68 антивирусов в одном! (он-лайн)" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\herdProtect\herdProtectScan.exe" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\herdProtect\herdProtectScan.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\herdProtect\herdProtectScan.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_32" /ve /t REG_SZ /d "Для 32х битной системы" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_32" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_32\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze.exe" /f 1>> %logfile% 2>>&1
@@ -5854,7 +6183,7 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_64\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze_x64.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lockoffmon" /ve /t REG_SZ /d "Блокировка и выключение монитора" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lockoffmon" /v "Icon" /t REG_SZ /d "imageres.dll,-101" /f 1>> %logfile% 2>>&1
-	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lockoffmon\command" /ve /t REG_EXPAND_SZ /d "devxexec.exe /user:System %SystemRoot%\Tools\MonitorOff.bat" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lockoffmon\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\MonitorOff.bat" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lock" /ve /t REG_SZ /d "Блокировка компьютера" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lock" /v "Icon" /t REG_SZ /d "shell32.dll,-48" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lock\command" /ve /t REG_SZ /d "Rundll32 User32.dll,LockWorkStation" /f 1>> %logfile% 2>>&1
@@ -6054,10 +6383,14 @@ if !errorlevel!==1 (
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\taskmgr" /ve /t REG_SZ /d "Диспетчер задач" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\taskmgr" /v "Icon" /t REG_SZ /d "taskmgr.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\taskmgr\command" /ve /t REG_SZ /d "devxexec.exe /user:TrustedInstaller taskmgr.exe" /f 1>> %logfile% 2>>&1
-	::reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd" /ve /t REG_SZ /d "Командная строка" /f 1>> %logfile% 2>>&1
-	::reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd" /v "Icon" /t REG_SZ /d "cmd.exe" /f 1>> %logfile% 2>>&1
-	::reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	::reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd\command" /ve /t REG_SZ /d "devxexec.exe /user:System cmd.exe" /f 1>> %logfile% 2>>&1
+	:: reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd" /ve /t REG_SZ /d "Командная строка" /f 1>> %logfile% 2>>&1
+	:: reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd" /v "Icon" /t REG_SZ /d "cmd.exe" /f 1>> %logfile% 2>>&1
+	:: reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
+	:: reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd\command" /ve /t REG_SZ /d "devxexec.exe /user:System cmd.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\sfcfix" /ve /t REG_SZ /d "Исправление ошибок Центра обновления" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\sfcfix" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\sfcfix" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\SFCFix.exe" /f 1>> %logfile% 2>>&1
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\sfcfix\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\SFCFix.exe" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixwin" /ve /t REG_SZ /d "Менеджер исправлений ошибок" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixwin" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixwin" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\fixWin\fixWin.exe" /f 1>> %logfile% 2>>&1
@@ -6098,24 +6431,24 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 )
 @echo. 1>> %logfile%
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Уменьшить размер буфера мыши и клавиатуры.%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m если мышь ведет себя некорректно, увеличьте данные значения до 100.
 @echo Уменьшить размер буфера мыши и клавиатуры. Предупреждение: если мышь ведет себя некорректно, увеличьте данные значения до 100. 1>> %logfile%
 set timerStart=!time!
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\mouclass\Parameters" /v "MouseDataQueueSize" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
-::reg delete "HKLM\SYSTEM\CurrentControlSet\Services\mouclass\Parameters" /v "MouseDataQueueSize" /f 1>> %logfile% 2>>&1
+:: reg delete "HKLM\SYSTEM\CurrentControlSet\Services\mouclass\Parameters" /v "MouseDataQueueSize" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\kbdclass\Parameters" /v "KeyboardDataQueueSize" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-::@echo %clr%[36m Отключить счетчики производительности.%clr%[92m %clr%[7;31mВнимание: после отключения службы, наблюдается нестабильность системы и неработоспособность диспетчера задач.%clr%[0m%clr%[36m%clr%[92m
-::set timerStart=!time!
-::call :disable_svc pcw
-::set timerEnd=!time!
-::call :timer
-::@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
-::echo. 1>> %logfile% 2>>&1
+:: @echo %clr%[36m Отключить счетчики производительности.%clr%[92m %clr%[7;31mВнимание: после отключения службы, наблюдается нестабильность системы и неработоспособность диспетчера задач.%clr%[0m%clr%[36m%clr%[92m
+:: set timerStart=!time!
+:: call :disable_svc pcw
+:: set timerEnd=!time!
+:: call :timer
+:: @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+:: echo. 1>> %logfile% 2>>&1
 @echo %clr%[36m Отключить PPM и уменьшить задержку в играх.%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m если после отключения параметров производительность снизилась, выставите значения на 0.
 @echo Отключить PPM и уменьшить задержку в играх. Предупреждение: если после отключения параметров производительность снизилась, выставите значения на 0. 1>> %logfile%
 set timerStart=!time!
@@ -6146,7 +6479,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Включить поддержку сглаживания анимации в драйвере nVidia (SILK Smooth).%clr%[92m %clr%[7;31mПримечание:%clr%[0m%clr%[36m%clr%[92m помогает при микрофризах в играх. Последняя поддержка SILK содержится в драйвере 442.74 и настраивается в панели управления nVidia.
 @echo Включить поддержку сглаживания анимации в драйвере nVidia (SILK Smooth). Примечание: помогает при микрофризах в играх. Последняя поддержка SILK содержится в драйвере 442.74 и настраивается в панели управления nVidia. 1>> %logfile%
 set timerStart=!time!
-reg add "HKLM\System\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableRID61684" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -6195,7 +6528,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Выберите желаемое приложение или игру для установки высокопроизводительного приоритета DirectX и использования виртуального адресного пространства для снижения микрофризов.%clr%[92m
 @echo Выберите желаемое приложение или игру для установки высокопроизводительного приоритета DirectX и использования виртуального адресного пространства для снижения микрофризов. 1>> %logfile%
 set timerStart=!time!
-powershell -ExecutionPolicy Bypass -file "%~dp0ProcessPerformance.ps1" -wa SilentlyContinue 1>> %logfile% 2>>&1
+%PS% "%~dp0ProcessPerformance.ps1" -wa SilentlyContinue 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -6262,6 +6595,23 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
+@echo %clr%[36m Установить мультимедиа приложение ^(FS клиент^) для бесплатного онлайн просмотра фильмов и сериалов?%clr%[92m
+choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+if !errorlevel!==1 (
+	set timerStart=!time!
+	@echo %clr%[36m Установка мультимедиа приложения ^(FS клиент^) для бесплатного онлайн просмотра фильмов и сериалов.%clr%[92m
+	@echo Установка мультимедиа приложения ^(FS клиент^) для бесплатного онлайн просмотра фильмов и сериалов. 1>> %logfile%
+	CheckNetIsolation LoopbackExempt -a -n="24831TIRRSOFT.FS_*_7dqv9t6ww56qc" 1>> %logfile% 2>>&1
+	md "%~dp0FSClient" 1>> %logfile% 2>>&1
+	%PS% "Invoke-WebRequest https://fsclient.github.io/fs/FSClient.UWP/FSClient.UWP.cer -OutFile '%~dp0FSClient\FSClient\FSClient.UWP.cer'" 1>> %logfile% 2>>&1
+	%PS% "Invoke-WebRequest https://fsclient.github.io/fs/FSClient.UWP/FSClient.UWP.appxbundle -OutFile '%~dp0FSClient\FSClient\FSClient.UWP.appxbundle'" 1>> %logfile% 2>>&1
+	certutil -enterprise -f -AddStore "Root" "%~dp0FSClient\FSClient.UWP.cer" 1>> %logfile% 2>>&1
+	%PS% "Add-AppxPackage -Path '%~dp0FSClient\FSClient.UWP.appxbundle'" 1>> %logfile% 2>>&1
+	set timerEnd=!time!
+	call :timer
+	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	echo. 1>> %logfile%
+)
 @echo %clr%[36m Очистить следы подключения USB-дисков и DVD-ROM для корректной работы.%clr%[92m
 @echo Очистить следы подключения USB-дисков и DVD-ROM для корректной работы. 1>> %logfile%
 set timerStart=!time!
@@ -6284,7 +6634,7 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 @echo %clr%[36m Выполнить обслуживание системы после настройки?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
@@ -6319,19 +6669,19 @@ if !errorlevel!==1 (
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 )
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 start "" /min %~dp0EmptyStandbyList.exe "workingsets|modifiedpagelist|standbylist|priority0standbylist"
 lodctr /e:PerfOS 1>> %logfile% 2>>&1
 lodctr /r 1>> %logfile% 2>>&1
 start "" "%SystemRoot%\explorer.exe"
 timeout /t 1 /nobreak | break
 ie4uinit -ClearIconCache
-powershell "gps explorer | spps -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "gps explorer | spps -wa SilentlyContinue" 1>> %logfile% 2>>&1
 echo.%clr%[36m
 echo. 1>> %logfile% 2>>&1
 bcdedit /enum 1>> %logfile% 2>>&1
 echo. 1>> %logfile% 2>>&1
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 echo.%clr%[42m%clr%[0m
 timeout /t 5 /nobreak | break
 rundll32 user32.dll, SetActiveWindow 1
@@ -6344,8 +6694,8 @@ move /y %~dp0InstallUtil.InstallLog %~dp0..\..\Logs\InstallUtil.InstallLog | bre
 move /y %~dp0TimerResolution.InstallLog %~dp0..\..\Logs\TimerResolution.InstallLog | break
 move /y %~dp0TimerResolution.InstallState %~dp0..\..\Logs\TimerResolution.InstallState | break
 @echo --- End of file --- 1>> %logfile% 2>>&1
-del /f /q %~dp0logfile
 del /f /q %tmpfile%
+del /f /q %~dp0logfile
 %SystemUser% del /f /q %SystemRoot%\System32\CodeIntegrity\SIPolicy.p7b
 %SystemUser% del /f /q %SystemRoot%\System32\CodeIntegrity\driversipolicy.p7b
 shutdown -r -t 0
@@ -6355,13 +6705,13 @@ move /y %~dp0InstallUtil.InstallLog %~dp0..\..\Logs\InstallUtil.InstallLog | bre
 move /y %~dp0TimerResolution.InstallLog %~dp0..\..\Logs\TimerResolution.InstallLog  | break
 move /y %~dp0TimerResolution.InstallState %~dp0..\..\Logs\TimerResolution.InstallState  | break
 @echo --- End of file --- 1>> %logfile% 2>>&1
-del /f /q %~dp0logfile
 del /f /q %tmpfile%
+del /f /q %~dp0logfile
 %SystemUser% del /f /q %SystemRoot%\System32\CodeIntegrity\SIPolicy.p7b
 %SystemUser% del /f /q %SystemRoot%\System32\CodeIntegrity\driversipolicy.p7b
 timeout -1 | break
 goto :eof
-rem #########################################################################################################################################################################################################################
+:: #########################################################################################################################################################################################################################
 :clr
 for /f "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do (set clr=%%b)
 goto :eof
@@ -6431,7 +6781,7 @@ tasklist /fo table /nh /fi "imagename eq trustedinstaller.exe" >nul | find /i "t
 %~dp0devxexec.exe /user:TrustedInstaller "%~1" 1>> %logfile% 2>>&1
 goto :eof
 :remove_uwp
-powershell "Get-AppxPackage *%~1* -AllUsers | Remove-AppxPackage -AllUsers -wa SilentlyContinue" 1>> %logfile% 2>>&1
+%PS% "Get-AppxPackage *%~1* -AllUsers | Remove-AppxPackage -AllUsers -wa SilentlyContinue" 1>> %logfile% 2>>&1
 goto :eof
 :remove_uwp_hard
 %~dp0install_wim_tweak.exe /o /r /c %~1 1>> %logfile% 2>>&1

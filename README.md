@@ -2,7 +2,7 @@ MegaTweaksPack for Highest Performance от TheDoctor - это системны�
 
 Скрипт предназначен только для русскоязычных пользователей!
 
-Скачать архивом последнюю сборку MegaTweakPack можно отсюда - https://github.com/TheDoctorTash/MegaTweakPack/archive/refs/heads/main.zip
+Скачать архивом последнюю сборку MegaTweakPack можно отсюда - https://github.com/TheDoctorTash/MegaTweakPack/releases/download/0.9/MegaTweakPack_v0.9.zip
 
 Известные баги:
 1. Не корректно работает спящий режим (гибернация)

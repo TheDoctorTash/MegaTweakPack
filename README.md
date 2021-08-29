@@ -1,10 +1,9 @@
-# MegaTweakPack
-Tweaks for Windows 10
+MegaTweaksPack for Highest Performance от TheDoctor - это системный скрипт для оптимизации, тонкой настройки и очистки Windows 10 от системного мусора. Все это в совокупности, позволит увеличить скорость работы системы. Вы сможете устранить разного типа ошибки, улучшить безопасность и применить ряд других оптимизированных настроек. Вы получите свыше 50 разных утилит, которые помогут вам заставить Windows 10 работать быстрее и стабильнее.
 
-Only for russian users!
+Скрипт предназначен только для русскоязычных пользователей!
 
-Download the MegaTweakPack - https://github.com/TheDoctorTash/MegaTweakPack/archive/refs/heads/main.zip
+Скачать архивом последнюю сборку MegaTweakPack можно отсюда - https://github.com/TheDoctorTash/MegaTweakPack/archive/refs/heads/main.zip
 
-Known bugs:
-1. Hibernation dosent work
-2. DNS resolve slow up
+Известные баги:
+1. Не корректно работает спящий режим (гибернация)
+2. При подключении к интернету временно наблюдается задержка обработки DNS запросов

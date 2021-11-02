@@ -1,6 +1,13 @@
 @echo off
 echo off
 chcp 1251 | break
+reg add "HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "%~dp0captime.exe" /t REG_SZ /d "~ RUNASADMIN WINXPSP3" /f >nul 2>&1
+reg add "HKCU\SOFTWARE\VB and VBA Program Settings\K Clock\CapTime" /v "Format" /t REG_SZ /d "• $c • $dd • $tt •" /f >nul 2>&1
+reg add "HKCU\SOFTWARE\VB and VBA Program Settings\K Clock\CapTime" /v "AMPM" /t REG_SZ /d "False" /f >nul 2>&1
+reg add "HKCU\SOFTWARE\VB and VBA Program Settings\K Clock\CapTime" /v "Speed" /t REG_SZ /d "11" /f >nul 2>&1
+reg add "HKCU\SOFTWARE\VB and VBA Program Settings\K Clock\CapTime" /v "RemoveCount" /t REG_SZ /d "0" /f >nul 2>&1
+%~dp0nircmdc.exe exec2 hide %~dp0 "%~dp0captime.exe" /noicon
+%~dp0nircmdc.exe win hide process "captime.exe"
 setlocal enableextensions enabledelayedexpansion
 if defined SAFEBOOT_OPTION (
 	echo  *** Вы находитесь в безопасном режиме^! Данный скрипт предназначен только для запуска в обычном режиме. ***
@@ -17,7 +24,8 @@ reg query "HKU\S-1-5-19\Environment" & cls
 if %errorlevel% neq 0 (
 	echo: Set UAC = CreateObject^("Shell.Application"^) > "%~dp0..\..\Logs\getadmin.vbs"
 	echo: UAC.ShellExecute "%~f0", "", "", "runas", 1 >> "%~dp0..\..\Logs\getadmin.vbs"
-	"%~dp0..\..\Logs\getadmin.vbs" goto :eof )
+	"%~dp0..\..\Logs\getadmin.vbs" goto :eof
+)
 if exist "%~dp0..\..\Logs\getadmin.vbs" ( del /f /q "%~dp0..\..\Logs\getadmin.vbs" >nul 2>&1 ) & goto :eof
 set HostOSName=
 set HostArchitecture=
@@ -26,13 +34,13 @@ set HostDisplayVersion=
 set HostVersion=
 set HostBuild=
 set AgainRunning=
-set /p AgainDate= < %~dp0launched.mtp
+if exist "%~dp0launched.mtp" set /p AgainDate= < %~dp0launched.mtp
 if exist "%~dp0launched.mtp" set "AgainRunning=Да"
 if not exist "%~dp0launched.mtp" set "AgainRunning=Нет"
 if exist "%SystemRoot%\SysWOW64" set "HostArchitecture=x64"
-if not exist "%WinDir%\SysWOW64" set "HostArchitecture=x86"
-for /f "skip=2 tokens=1,2*" %%i in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul') do if /i "%%i" == "ProductName" set "HostOSName=%%k"
-for /f "skip=2 tokens=1,2*" %%i in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v DisplayVersion 2^>nul') do if /i "%%i" == "DisplayVersion" set "HostDisplayVersion=%%k"
+if not exist "%SystemRoot%\SysWOW64" set "HostArchitecture=x86"
+for /f "skip=2 tokens=1,2*" %%i in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName" 2^>nul') do if /i "%%i" == "ProductName" set "HostOSName=%%k"
+for /f "skip=2 tokens=1,2*" %%i in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "DisplayVersion" 2^>nul') do if /i "%%i" == "DisplayVersion" set "HostDisplayVersion=%%k"
 for /f "tokens=4-5 delims=. " %%s in ('ver 2^>nul') do set "HostVersion=%%s.%%t"
 for /f "tokens=1 delims=" %%i in ('wmic os get BuildNumber ^| find /v "BuildNumber"') do (for /f "delims=" %%b in ("%%i") do (set /a HostBuild=%%~nb))
 for /f "tokens=2 delims==" %%a in ('wmic os get OSLanguage /Value') do (set HostLanguage=%%a)
@@ -43,9 +51,12 @@ if %HostLanguage% equ 1049 (
 ) else (
   echo Язык системы не поддерживается. Выход из скрипта...
   timeout /t 5 /nobreak | break
+  goto :eof
 )
 call :clr
 chcp 1251 | break
+set title=Скрипт вы используете на свой страх и риск, создатель скрипта ответственности за ущерб не несет.
+title %title%
 rem #########################################################################################################################################################################################################################
 echo.
 echo.                        %clr%[91mП Р Е Д У П Р Е Ж Д Е Н И Е%clr%[0m
@@ -75,7 +86,10 @@ echo. %clr%[0mКонтактная информация:    %clr%[92mTelegram - eastrica_support1, Z
 echo.%clr%[0m_______________________________________________________________________________%clr%[91m
 echo.
 choice /c yn /n /m "Вы выполнили все условия и подтверждаете запуск? [Y:Подтвердить / N:Выйти]"
-if errorlevel 2 goto :eof
+if errorlevel 2 (
+taskkill /f /im "captime.exe"
+goto :eof
+)
 rem #########################################################################################################################################################################################################################
 pushd "%cd%"
 cd /d "%~dp0"
@@ -84,8 +98,9 @@ set tmpfile=%~dp0..\..\Logs\temp.dat
 time /t > %tmpfile%
 set /p ftime= < %tmpfile%
 set daytime=%date:~0,2%.%date:~3,2%.%date:~6%_%ftime:~0,2%-%ftime:~3,2%
+set daytimecmd=%date:~0,2%.%date:~3,2%.%date:~6% %ftime:~0,2%:%ftime:~3,2%
 set logfile=%~dp0..\..\Logs\MegaTweakPack_%daytime%.log
-echo %daytime% > %~dp0launched.mtp
+echo %daytimecmd% > %~dp0launched.mtp
 powershell "Set-ExecutionPolicy Unrestricted" | break
 setx NUGET_XMLDOC_MODE skip | break
 (set | find "ProgramFiles(x86)" > nul) && (echo "%ProgramFiles(x86)%" | find "x86") > nul && set arch=x64||set arch=x86
@@ -96,10 +111,9 @@ set keySelY="Выполнить задачу? Действие по-умолчанию: запуск задачи через %autoC
 set keySelN="Выполнить задачу? Действие по-умолчанию: отмена задачи через %autoChoose% секунд. [Y:Выполнить / N:Пропустить]"
 cls
 rem #########################################################################################################################################################################################################################
-set title=MegaTweaksPack for Highest Performance v0.9.2 by TheDoctor
-title %title%
-@echo %clr%[30m %clr%[106m %title% %clr%[0m
-@echo *** %title% *** 1>> %logfile%
+set copyright=MegaTweaksPack for Highest Performance v0.9.2 by TheDoctor
+@echo %clr%[30m %clr%[106m %copyright% %clr%[0m
+@echo *** %copyright% *** 1>> %logfile%
 echo. 1>> %logfile%
 timeout /t 5 /nobreak | break
 %~dp0ExitExplorer.exe
@@ -2884,10 +2898,10 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "S
 reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 call :remove_uwp Microsoft.549981C3F5F10
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Cortana.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
-rem reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SearchUI.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SearchUI.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" /v "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" /t REG_SZ /d "BlockCortana|Action=Block|Active=TRUE|Dir=Out|App=C:\Windows\systemapps\microsoft.windows.cortana_cw5n1h2txyewy\SearchUI.exe|Name=Search and Cortana application|" /f 1>> %logfile% 2>>&1
-rem call :acl_file-folders "%SystemRoot%\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\SearchUI.exe"
-rem call :kill "SearchUI.exe"
+call :acl_file-folders "%SystemRoot%\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\SearchUI.exe"
+call :kill "SearchUI.exe"
 rem ren %SystemRoot%\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\SearchUI.exe SearchUI.bkp 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -7172,6 +7186,7 @@ if !errorlevel!==1 (
 	echo. 1>> %logfile% 2>>&1
 	@echo --- End of file --- 1>> %logfile% 2>>&1
 	timeout /t 1 /nobreak | break
+	taskkill /f /im "captime.exe"
 	shutdown -f -r -t 0
 	goto :eof
 )
@@ -7198,6 +7213,7 @@ if !errorlevel!==1 (
 )
 del /f /q %tmpfile% >nul 2>&1
 del /f /q %~dp0logfile >nul 2>&1
+taskkill /f /im "captime.exe"
 goto :eof
 
 :clr
@@ -7230,7 +7246,7 @@ del /f /q %tmpfile% >nul 2>&1
 del /f /q %~dp0logfile >nul 2>&1
 goto :eof
 :kill
-call :trusted_app taskkill /f /im %~1
+taskkill /f /im "%~1" 1>> %logfile% 2>>&1
 goto :eof
 :auto_svc
 sc config "%~1" start= auto 1>> %logfile% 2>>&1

@@ -71,6 +71,12 @@
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
+        <SettingNameInfo> </SettingNameInfo>
+        <SettingID>6710836</SettingID>
+        <SettingValue>1</SettingValue>
+        <ValueType>Dword</ValueType>
+      </ProfileSetting>
+      <ProfileSetting>
         <SettingNameInfo>Ambient Occlusion</SettingNameInfo>
         <SettingID>6714153</SettingID>
         <SettingValue>0</SettingValue>
@@ -92,6 +98,12 @@
         <SettingNameInfo />
         <SettingID>9630942</SettingID>
         <SettingValue>1401226867</SettingValue>
+        <ValueType>Dword</ValueType>
+      </ProfileSetting>
+      <ProfileSetting>
+        <SettingNameInfo>SILK Smoothness</SettingNameInfo>
+        <SettingID>9990737</SettingID>
+        <SettingValue>1</SettingValue>
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
@@ -215,7 +227,7 @@
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
-        <SettingNameInfo>Platform Boost</SettingNameInfo>
+        <SettingNameInfo />
         <SettingID>277041150</SettingID>
         <SettingValue>0</SettingValue>
         <ValueType>Dword</ValueType>
@@ -227,9 +239,15 @@
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
-        <SettingNameInfo>Frame Rate Limiter</SettingNameInfo>
+        <SettingNameInfo />
         <SettingID>277041154</SettingID>
         <SettingValue>0</SettingValue>
+        <ValueType>Dword</ValueType>
+      </ProfileSetting>
+      <ProfileSetting>
+        <SettingNameInfo>Ansel flags for enabled applications</SettingNameInfo>
+        <SettingID>277207690</SettingID>
+        <SettingValue>1</SettingValue>
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
@@ -452,40 +470,6 @@
         <SettingNameInfo />
         <SettingID>1343646814</SettingID>
         <SettingValue>0</SettingValue>
-        <ValueType>Dword</ValueType>
-      </ProfileSetting>
-    </Settings>
-  </Profile>
-  <Profile>
-    <ProfileName>Desktop Windows Manager</ProfileName>
-    <Executeables>
-      <string>dwm.exe</string>
-    </Executeables>
-    <Settings>
-      <ProfileSetting>
-        <SettingNameInfo>Power management mode</SettingNameInfo>
-        <SettingID>274197361</SettingID>
-        <SettingValue>1</SettingValue>
-        <ValueType>Dword</ValueType>
-      </ProfileSetting>
-    </Settings>
-  </Profile>
-  <Profile>
-    <ProfileName>Windows Explorer</ProfileName>
-    <Executeables>
-      <string>explorer.exe</string>
-    </Executeables>
-    <Settings>
-      <ProfileSetting>
-        <SettingNameInfo>Power management mode</SettingNameInfo>
-        <SettingID>274197361</SettingID>
-        <SettingValue>1</SettingValue>
-        <ValueType>Dword</ValueType>
-      </ProfileSetting>
-      <ProfileSetting>
-        <SettingNameInfo>Frame Rate Limiter</SettingNameInfo>
-        <SettingID>277041134</SettingID>
-        <SettingValue>2097152</SettingValue>
         <ValueType>Dword</ValueType>
       </ProfileSetting>
     </Settings>

@@ -1,5 +1,5 @@
 Write-Output "Добавление доменов телеметрии в файл hosts"
-$hosts_file = "$env:systemroot\System32\drivers\etc\hosts"
+$hosts_file = "$env:SystemRoot\System32\drivers\etc\hosts"
 $domains = @(
     "184-86-53-99.deploy.static.akamaitechnologies.com"
     "a-0001.a-msedge.net"
@@ -141,7 +141,6 @@ $domains = @(
     "p.static.ads-twitter.com"                  # может вызвать проблемы с входом в Twitter
     "hubspot.net.edge.net"
     "e9483.a.akamaiedge.net"
-
     #"www.google-analytics.com"
     #"padgead2.googlesyndication.com"
     #"mirror1.malwaredomains.com"
@@ -155,7 +154,6 @@ $domains = @(
     "hubspot.net.edgekey.net"
     "insiderppe.cloudapp.net"                   # Feedback-Hub
     "livetileedge.dsx.mp.microsoft.com"
-
     # extra
     "fe2.update.microsoft.com.akadns.net"
     "s0.2mdn.net"
@@ -168,7 +166,6 @@ $domains = @(
     "watson.telemetry.microsoft.com.nsatc.net"
     "wes.df.telemetry.microsoft.com"
     "m.hotmail.com"
-
     # может вызвать проблемы со Skype (# 79) или другими службами (# 171)
     # "apps.skype.com"
     "c.msn.com"

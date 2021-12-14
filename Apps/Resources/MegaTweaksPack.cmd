@@ -71,36 +71,37 @@ if %errorlevel% equ 1 (
 )
 call :clr
 chcp 1251 | break
-set title=скрипт вы используете на свой страх и риск
+set title=скрипт вы используете на свой страх и риск, за причиненный ущерб создатель скрипта ответственности не несет.
 title %title%
 rem #########################################################################################################################################################################################################################
-echo.
-echo.                        %clr%[91m? П Р Е Д У П Р Е Ж Д Е Н И Е ?%clr%[0m
-echo.                        ___________________________%clr%[91m
-echo.
-echo. MegaTweaksPack for Highest Performance от TheDoctor - это системный скрипт для 
-echo. оптимизации, тонкой настройки и очистки Windows 10 от системного мусора.
-echo. Все это в совокупности, позволит увеличить скорость работы системы, вы сможете 
-echo. устранить разного типа ошибки, улучшить безопасность и применить ряд других 
-echo. оптимизированных настроек. Вы получите свыше 50 разных утилит, которые помогут 
-echo. вам заставить Windows 10 работать быстрее и стабильнее.
-echo.
-echo. Для корректного выполнения скрипта, вам необходимо отключить антивирус и 
-echo. добавить %clr%[0mвсю папку со скриптом%clr%[91m в доверенную зону. ПОСЛЕ выполнения скрипта, 
-echo. добавьте папку %clr%[0m%HomeDrive%\Windows\Tools%clr%[91m в доверенную зону антивируса.
-echo.%clr%[0m_______________________________________________________________________________%clr%[0m
-echo.
-echo. %clr%[0mВаша ОС:%clr%[91m %clr%[92m%HostOSName% %HostArchitecture% %HostLanguage% %WhichVersion% (%HostDisplayVersion%) Сборка: %HostVersion%.%HostBuild%%clr%[91m
-echo. %clr%[0mСкрипт ранее запускался:%clr%[91m %clr%[92m%AgainRunning%%clr%[91m
-if exist "%~dp0launched.mtp" echo. %clr%[0mПоследний запуск скрипта: %clr%[92m%AgainDate%%clr%[91m
-echo.%clr%[0m_______________________________________________________________________________%clr%[0m
-echo.
-echo. %clr%[0mСоздатель скрипта:        %clr%[92mTheDoctor
-echo. %clr%[0mВерсия скрипта:           %clr%[92m%ScriptVersion%
-echo. %clr%[0mПоследняя версия скрипта: %clr%[92mhttps://github.com/TheDoctorTash/MegaTweakPack
-echo. %clr%[0mКонтактная информация:    %clr%[92mTelegram - eastrica_support1, Zello - TheDoctorTash
-echo.%clr%[0m_______________________________________________________________________________%clr%[91m
-echo.
+echo.  
+echo.                                              %clr%[91m• П Р Е Д У П Р Е Ж Д Е Н И Е •%clr%[0m
+echo.                                                ___________________________%clr%[91m
+echo.  
+echo.  
+echo.  MegaTweaksPack for Highest Performance от TheDoctor - это системный скрипт для оптимизации, тонкой настройки и очистки Windows 10 
+echo.  от системного мусора. Все это в совокупности, позволит увеличить скорость работы системы, вы сможете устранить разного типа ошибки, 
+echo.  улучшить безопасность и применить ряд других оптимизированных настроек. Вы получите свыше 50 разных утилит, которые помогут вам 
+echo.  заставить Windows 10 работать быстрее и стабильнее.
+echo.  
+echo.  Для корректного выполнения скрипта, вам необходимо отключить антивирус и добавить %clr%[0mвсю папку со скриптом%clr%[91m в доверенную зону. 
+echo.  ПОСЛЕ выполнения скрипта, добавьте папку %clr%[0m%HomeDrive%\Windows\Tools%clr%[91m в доверенную зону антивируса.
+echo.  
+echo.  
+echo.  %clr%[0m___________________________________________________________________________________________________________________________________%clr%[0m
+echo.  
+echo.  %clr%[0mВаша ОС:                  %clr%[91m %clr%[92m%HostOSName% %HostArchitecture% %HostLanguage% %WhichVersion% (%HostDisplayVersion%) Сборка: %HostVersion%.%HostBuild%%clr%[91m
+echo.  %clr%[0mСкрипт ранее запускался:  %clr%[91m %clr%[92m%AgainRunning%%clr%[91m
+if exist "%~dp0launched.mtp" echo.  %clr%[0mПоследний запуск скрипта:  %clr%[92m%AgainDate%%clr%[91m
+echo.  %clr%[0m___________________________________________________________________________________________________________________________________%clr%[0m
+echo.  
+echo.  %clr%[0mСоздатель скрипта:        %clr%[92m TheDoctor
+echo.  %clr%[0mВерсия скрипта:           %clr%[92m %ScriptVersion%
+echo.  %clr%[0mПоследняя версия скрипта: %clr%[92m https://github.com/TheDoctorTash/MegaTweakPack
+echo.  %clr%[0mКонтактная информация:    %clr%[92m Telegram - eastrica_support1, Zello - TheDoctorTash
+echo.  %clr%[0m___________________________________________________________________________________________________________________________________%clr%[91m
+echo.  
+echo.  
 choice /c yn /n /m "Вы выполнили все условия и подтверждаете запуск? [Y:Подтвердить / N:Выйти]"
 if errorlevel 2 (
 taskkill /f /im "captime.exe"
@@ -136,7 +137,7 @@ rem ############################################################################
 @echo %clr%[0m %clr%[93mСоздание точки восстановления. Пожалуйста, подождите...%clr%[92m
 @echo Создание точки восстановления. 1>> %logfile%
 set timerStart=!time!
-reg load HKU\.DEFAULT %SystemDrive%\Users\Default\NTUSER.DAT
+reg load HKU\.DEFAULT %SystemDrive%\Users\Default\NTUSER.DAT 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "SystemRestorePointCreationFrequency" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableConfig" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableSR" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -5248,8 +5249,8 @@ echo. 1>> %logfile%
 @echo %clr%[36m Установить кодек для открытия изображений или медиаконтейнеров в формате High Efficiency Image File Format (HEIF) в любом фоторедакторе.%clr%[92m
 @echo Установить кодек для открытия изображений или медиаконтейнеров в формате High Efficiency Image File Format (HEIF) в любом фоторедакторе. 1>> %logfile%
 set timerStart=!time!
-%rf% "%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.42621.0_x86__8wekyb3d8bbwe.Appx"
-%rf% "%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.42621.0_x64__8wekyb3d8bbwe.Appx"
+%rf% "%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.42621.0_x86__8wekyb3d8bbwe.Appx" 1>> %logfile% 2>>&1
+%rf% "%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.42621.0_x64__8wekyb3d8bbwe.Appx" 1>> %logfile% 2>>&1
 %PS% "Add-AppxPackage -Path '%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.43012.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
@@ -7182,7 +7183,7 @@ set timerStart=!time!
 call :kill "quietHDD.exe"
 start "" /wait "%~dp0..\Installers\quietHDD.exe"
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "quietHDD" /t REG_SZ /d "\"%SystemRoot%\Tools\quietHDD\quietHDD.exe\" /NOTRAY /ACAPMVALUE:255 /DCAPMVALUE:255 /ACAAMVALUE:254 /DCAAMVALUE:254 /NOWARN" /f 1>> %logfile% 2>>&1
-reg unload HKU\.DEFAULT
+reg unload HKU\.DEFAULT 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m

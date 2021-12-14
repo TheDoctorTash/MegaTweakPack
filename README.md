@@ -1,4 +1,6 @@
-<center><img src="https://cutewallpaper.org/22/dalek-hd-wallpaper/1766921014.jpg" alt="https://github.com/TheDoctorTash/MegaTweakPack/" class="center"></center>
+<p align="center">
+  <img src="https://cutewallpaper.org/22/dalek-hd-wallpaper/1766921014.jpg" alt="Dalek Hd Wallpaper posted by Ethan Walker"/>
+</p>
 
 <b>MegaTweaksPack for Highest Performance от TheDoctor - это системный скрипт для оптимизации, тонкой настройки и очистки Windows 10 от системного мусора. Все это в совокупности, позволит увеличить скорость работы системы. Вы сможете устранить разного типа ошибки, улучшить безопасность и применить ряд других оптимизированных настроек. Вы получите свыше 50 разных утилит, которые помогут вам заставить Windows 10 работать быстрее и стабильнее.<br>
 

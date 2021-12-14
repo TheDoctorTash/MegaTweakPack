@@ -39,6 +39,7 @@ v 0.9.3 beta<br>
 Обновлен Everything до версии 1.4.1.1009.<br>
 Обновлен Reduce Memory до версии 1.6.<br>
 Обновлен Registry First Aid до версии 11.3.0.2585.<br>
+Обновлен Update Time до версии 1.3.<br>
 Обновлен Fix Print Spooler до версии 1.2.<br>
 Обновлен Rebuild Icon Cache до версии 1.3.<br>
 Обновлен Restart Explorer до версии 1.6.<br>

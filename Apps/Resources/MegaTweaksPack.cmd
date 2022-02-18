@@ -36,7 +36,7 @@ if %errorlevel% neq 0 (
 	"%logs%\getadmin.vbs" goto :eof
 )
 if exist "%logs%\getadmin.vbs" ( %rf% "%logs%\getadmin.vbs" >nul 2>&1 ) & goto :eof
-set ScriptVersion=v0.9.3 beta
+set ScriptVersion=v0.9.4 Stable
 set HostOSName=
 set HostArchitecture=
 set HostLanguage=
@@ -98,7 +98,8 @@ echo.
 echo.  %clr%[0mСоздатель скрипта:        %clr%[92m TheDoctor
 echo.  %clr%[0mВерсия скрипта:           %clr%[92m %ScriptVersion%
 echo.  %clr%[0mПоследняя версия скрипта: %clr%[92m https://github.com/TheDoctorTash/MegaTweakPack
-echo.  %clr%[0mКонтактная информация:    %clr%[92m Telegram - eastrica_support1, Zello - TheDoctorTash
+echo.  %clr%[0mОтзывы и предложения:     %clr%[92m Telegram - https://t.me/MegaTweakPack
+echo.  %clr%[0mКонтактная информация:    %clr%[92m Zello - TheDoctorTash
 echo.  %clr%[0m___________________________________________________________________________________________________________________________________%clr%[91m
 echo.  
 echo.  
@@ -118,7 +119,7 @@ echo %daytimecmd% > %~dp0launched.mtp
 powershell "Set-ExecutionPolicy Unrestricted" | break
 setx NUGET_XMLDOC_MODE skip | break
 if not exist "%SystemRoot%\SysWOW64" (set "arch=x86") else (set "arch=x64")
-set SystemUser=%~dp0superUser_%arch%.exe -c
+set SystemUser=%~dp0superUser_%arch%.exe /c
 set "PS=powershell -NoLogo -NoProfile -NonInteractive -InputFormat None -ExecutionPolicy Bypass -Command"
 set autoChoose=30
 set keySelY="Выполнить задачу? Действие по-умолчанию: запуск задачи через %autoChoose% секунд. [Y:Выполнить / N:Пропустить]"
@@ -137,7 +138,7 @@ rem ############################################################################
 @echo %clr%[0m %clr%[93mСоздание точки восстановления. Пожалуйста, подождите...%clr%[92m
 @echo Создание точки восстановления. 1>> %logfile%
 set timerStart=!time!
-reg load HKU\.DEFAULT %SystemDrive%\Users\Default\NTUSER.DAT 1>> %logfile% 2>>&1
+reg load "HKU\.DEFAULT" "%SystemDrive%\Users\Default\NTUSER.DAT" 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "SystemRestorePointCreationFrequency" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableConfig" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableSR" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -162,6 +163,8 @@ echo.
 @echo Выполнение обслуживания ОС. 1>> %logfile%
 set timerStart=!time!
 %PS% "%~dp0OutdatedDrivers.ps1" 1>> %logfile% 2>>&1
+fsutil usn createjournal m=1 a=1 %SystemDrive%
+fsutil usn deletejournal /d %SystemDrive%
 sfc /scannow 1>> %logfile% 2>>&1
 %SystemRoot%\Microsoft.NET\Framework\v2.0.50727\ngen.exe update /force /queue 1>> %logfile% 2>>&1
 %SystemRoot%\Microsoft.NET\Framework64\v2.0.50727\ngen.exe update /force /queue 1>> %logfile% 2>>&1
@@ -184,9 +187,9 @@ wmic recoveros get DebugInfoType 1>> %logfile% 2>>&1
 wmic recoveros set DebugInfoType=7 1>> %logfile% 2>>&1
 wmic recoveros get DebugInfoType 1>> %logfile% 2>>&1
 wmic pagefile list /format:list 1>> %logfile% 2>>&1
-wmic Computersystem where name="%ComputerName%" get AutomaticManagedPagefile 1>> %logfile% 2>>&1
-wmic Computersystem where name="%ComputerName%" set AutomaticManagedPagefile=True 1>> %logfile% 2>>&1
-wmic Computersystem where name="%ComputerName%" get AutomaticManagedPagefile 1>> %logfile% 2>>&1
+wmic computersystem where name="%ComputerName%" get AutomaticManagedPagefile 1>> %logfile% 2>>&1
+wmic computersystem where name="%ComputerName%" set AutomaticManagedPagefile=True 1>> %logfile% 2>>&1
+wmic computersystem where name="%ComputerName%" get AutomaticManagedPagefile 1>> %logfile% 2>>&1
 bcdedit /enum {badmemory} 1>> %logfile% 2>>&1
 net stop WerSvc 1>> %logfile% 2>>&1
 net stop TrustedInstaller 1>> %logfile% 2>>&1
@@ -232,10 +235,13 @@ call :kill "dllhost.exe"
 %allrf% "%ProgramData%\Microsoft\Windows\WER\*" 1>> %logfile% 2>>&1
 for /d %%i in (%ProgramData%\Microsoft\Windows\WER\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 %allrf% "%ProgramData%\NVIDIA\*.log_backup1" 1>> %logfile% 2>>&1
-(for /f "usebackq tokens=1,2,*" %%a in (`reg query "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Steam" /v UninstallString`) do set SteamPath32=%%c) 1>> %logfile% 2>>&1
-(for /f "usebackq tokens=1,2,*" %%a in (`reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam" /v UninstallString`) do set SteamPath64=%%c) 1>> %logfile% 2>>&1
-set SteamPath=%SteamPath64%%SteamPath32%
-set SteamPath=%SteamPath:\uninstall.exe=%
+if "%arch%"=="x64" (
+(for /f "usebackq tokens=1,2,*" %%a in (`reg query "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Steam" /v UninstallString`) do set SteamPathString=%%c) 1>> %logfile% 2>>&1
+)
+if "%arch%"=="x86" (
+(for /f "usebackq tokens=1,2,*" %%a in (`reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam" /v UninstallString`) do set SteamPathString=%%c) 1>> %logfile% 2>>&1
+)
+set SteamPath=%SteamPathString:\uninstall.exe=%
 %allrf% "%SteamPath%\appcache\*.log" 1>> %logfile% 2>>&1
 %allrf% "%SteamPath%\Dumps\*" 1>> %logfile% 2>>&1
 %allrf% "%SteamPath%\logs\*" 1>> %logfile% 2>>&1
@@ -305,7 +311,7 @@ for /d %%i in (%SystemRoot%\System32\GroupPolicy\*.*) do @rd /s /q "%%i" 1>> %lo
 %allrf% "%SystemRoot%\System32\LogFiles\*" 1>> %logfile% 2>>&1
 for /d %%i in (%SystemRoot%\System32\LogFiles\*.*) do @rd /s /q "%%i" 1>> %logfile% 2>>&1
 %allrf% /a "%SystemRoot%\System32\*.sru" 1>> %logfile% 2>>&1
-%allrf% /a "%SystemRoot%\System32\sru*" 1>> %logfile% 2>>&1
+rem %allrf% /a "%SystemRoot%\System32\sru*" 1>> %logfile% 2>>&1
 %allrf% "%SystemRoot%\System32\config\systemprofile\AppData\Local\Microsoft\CLR_v4.0\UsageLogs\*" 1>> %logfile% 2>>&1
 %allrf% "%SystemRoot%\System32\config\systemprofile\AppData\Local\Microsoft\Windows\WebCache\*" 1>> %logfile% 2>>&1
 %allrf% "%SystemRoot%\Temp\*" 1>> %logfile% 2>>&1
@@ -351,7 +357,7 @@ attrib -s -h "%UserProfile%\Documents\Default.rdp" 1>> %logfile% 2>>&1
 %PS% "Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options' -Name * -Force" 1>> %logfile% 2>>&1
 for /f "tokens=* delims=" %%i in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches" /s /v "StateFlags0001"^|FindStr HKEY_') do ( %rga% "%%i" /v "StateFlags0001" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1 )
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\DownloadsFolder" /v "StateFlags0001" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-start "" /wait %SystemUser% run-hidden.exe %SystemRoot%\System32\cmd.exe /c "cleanmgr /sageset:1 && cleanmgr /sagerun:1"
+start "" /wait %SystemUser% /w run-hidden.exe %SystemRoot%\System32\cmd.exe /c "cleanmgr /sageset:1 && cleanmgr /sagerun:1"
 %~dp0..\Cleanmgr+\Cleanmgr+.exe /nowindow 1>> %logfile% 2>>&1
 %SystemUser% run-hidden.exe "wevtutil sl Microsoft-Windows-LiveId/Operational /ca:O:BAG:SYD:(A;;0x1;;;SY)(A;;0x5;;;BA)(A;;0x1;;;LA)" >nul 2>&1
 rem for /f "tokens=*" %%i in ('wevtutil el') do (%SystemUser% run-hidden.exe wevtutil cl '%%i') 1>> %logfile% 2>>&1
@@ -1172,7 +1178,7 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "DisableHHDEP" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "SecurityHealth" /f 1>> %logfile% 2>>&1
 	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run" /v "SecurityHealth" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SecHealthUI.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SecHealthUI.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" /v "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" /t REG_SZ /d "BlockSecHealthUI|Action=Block|Active=TRUE|Dir=Out|App=C:\Windows\systemapps\microsoft.windows.cortana_cw5n1h2txyewy\SearchUI.exe|Name=SecHealthUI application|" /f 1>> %logfile% 2>>&1
 	call :acl_file-folders "%SystemRoot%\SystemApps\Microsoft.Windows.SecHealthUI_cw5n1h2txyewy\SecHealthUI.exe"
 	call :kill "SecHealthUI.exe"
@@ -1234,8 +1240,8 @@ if !errorlevel!==1 (
 	%rf% "%Public%\Desktop\Microsoft Edge.lnk" 1>> %logfile% 2>>&1
 	%rga% "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /v "FavoritesResolve" /t REG_BINARY /d "320300004c0000000114020000000000c00000000000004683008000200000007a93da2ef73cd7012858df2ef73cd701d353b05b0eded401970100000000000001000000000000000000000000000000a0013a001f80c827341f105c1042aa032ee45287d668260001002600efbe120000004c43b521f73cd7016845cc2ef73cd701cff5dc2ef73cd701140056003100000000009d52296711005461736b42617200400009000400efbe9d5229679d5229672e000000d6050200000001000000000000000000000000000000311581005400610073006b00420061007200000016000e01320097010000734e7c25200046494c4545587e312e4c4e4b00007c0009000400efbe9d5229679d5229672e000000d70502000000010000000000000000005200000000002dfa9b00460069006c00650020004500780070006c006f007200650072002e006c006e006b00000040007300680065006c006c00330032002e0064006c006c002c002d003200320030003600370000001c00220000001e00efbe02005500730065007200500069006e006e006500640000001c00120000002b00efbe2858df2ef73cd7011c00420000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f00770073002e004500780070006c006f0072006500720000001c0000009b0000001c000000010000001c0000002d000000000000009a0000001100000003000000e06219521000000000433a5c55736572735c746573745c417070446174615c526f616d696e675c4d6963726f736f66745c496e7465726e6574204578706c6f7265725c517569636b204c61756e63685c557365722050696e6e65645c5461736b4261725c46696c65204578706c6f7265722e6c6e6b000060000000030000a058000000000000006465736b746f702d3668747071376600cc9e61a2a4954f42ac398d38cb60e68887f9b542e9a8eb11a0e000155d125200cc9e61a2a4954f42ac398d38cb60e68887f9b542e9a8eb11a0e000155d12520045000000090000a03900000031535053b1166d44ad8d7048a748402ea43d788c1d00000068000000004800000030462c212f54464e88b6c5eb1d5292d00000000000000000000000009d0600004c0000000114020000000000c00000000000004681008000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000004b0614001f809bd434424502f34db7803893943456e1350600009d05415050538b0508000300000000000000520200003153505355284c9f799f394ba8d0e1d42de1d5f35d00000011000000001f000000250000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650000000000110000000e0000000013000000010000008500000015000000001f0000003a0000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b0079006200330064003800620062007700650000006500000005000000001f000000290000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b00790062003300640038006200620077006500210041007000700000000000c10000000f000000001f0000005700000043003a005c00500072006f006700720061006d002000460069006c00650073005c00570069006e0064006f007700730041007000700073005c004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b00790062003300640038006200620077006500000000001d00000020000000004800000078d85872f8786e42a43f34253f188061000000008a020000315350534d0bd48669903c44819a2a54090dccec550000000c000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004d0065006400540069006c0065002e0070006e006700000000005500000002000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004100700070004c006900730074002e0070006e00670000000000590000000f000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f0072006500420061006400670065004c006f0067006f002e0070006e00670000000000550000000d000000001f000000220000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065005700690064006500540069006c0065002e0070006e0067000000110000000400000000130000000078d7ff5900000013000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004c006100720067006500540069006c0065002e0070006e0067000000000011000000050000000013000000ffffffff110000000e0000000013000000a5040000310000000b000000001f000000100000004d006900630072006f0073006f00660074002000530074006f007200650000005900000014000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f007200650053006d0061006c006c00540069006c0065002e0070006e00670000000000000000003100000031535053b1166d44ad8d7048a748402ea43d788c150000006400000000150000004200000000000000000000004d0000003153505330f125b7ef471a10a5f102608c9eebac310000000a000000001f000000100000004d006900630072006f0073006f00660074002000530074006f00720065000000000000002d00000031535053b377ed0d14c66c45ae5b285b38d7b01b110000000700000000130000000000000000000000000000000000220000001e00efbe02005500730065007200500069006e006e00650064000000a305120000002b00efbee21ce42ef73cd701a3055e0000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650021004100700070000000a305000000000000" /f 1>> %logfile% 2>>&1
 	%rga% "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /v "Favorites" /t REG_BINARY /d "00a40100003a001f80c827341f105c1042aa032ee45287d668260001002600efbe120000004c43b521f73cd7016845cc2ef73cd701cff5dc2ef73cd701140056003100000000009d52296711005461736b42617200400009000400efbe9d5229679d5229672e000000d6050200000001000000000000000000000000000000311581005400610073006b00420061007200000016001201320097010000734e7c25200046494c4545587e312e4c4e4b00007c0009000400efbe9d5229679d5229672e000000d70502000000010000000000000000005200000000002dfa9b00460069006c00650020004500780070006c006f007200650072002e006c006e006b00000040007300680065006c006c00330032002e0064006c006c002c002d003200320030003600370000001c00120000002b00efbe2858df2ef73cd7011c00420000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f00770073002e004500780070006c006f0072006500720000001c00260000001e00efbe0200530079007300740065006d00500069006e006e006500640000001c000000004f06000014001f809bd434424502f34db7803893943456e1390600009d05415050538b0508000300000000000000520200003153505355284c9f799f394ba8d0e1d42de1d5f35d00000011000000001f000000250000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650000000000110000000e0000000013000000010000008500000015000000001f0000003a0000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b0079006200330064003800620062007700650000006500000005000000001f000000290000004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b00790062003300640038006200620077006500210041007000700000000000c10000000f000000001f0000005700000043003a005c00500072006f006700720061006d002000460069006c00650073005c00570069006e0064006f007700730041007000700073005c004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f00310031003800310031002e0031003000300031002e00310038002e0030005f007800360034005f005f003800770065006b00790062003300640038006200620077006500000000001d00000020000000004800000078d85872f8786e42a43f34253f188061000000008a020000315350534d0bd48669903c44819a2a54090dccec550000000c000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004d0065006400540069006c0065002e0070006e006700000000005500000002000000001f000000210000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004100700070004c006900730074002e0070006e00670000000000590000000f000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f0072006500420061006400670065004c006f0067006f002e0070006e00670000000000550000000d000000001f000000220000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065005700690064006500540069006c0065002e0070006e0067000000110000000400000000130000000078d7ff5900000013000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f00720065004c006100720067006500540069006c0065002e0070006e0067000000000011000000050000000013000000ffffffff110000000e0000000013000000a5040000310000000b000000001f000000100000004d006900630072006f0073006f00660074002000530074006f007200650000005900000014000000001f000000230000004100730073006500740073005c00410070007000540069006c00650073005c00530074006f007200650053006d0061006c006c00540069006c0065002e0070006e00670000000000000000003100000031535053b1166d44ad8d7048a748402ea43d788c150000006400000000150000004200000000000000000000004d0000003153505330f125b7ef471a10a5f102608c9eebac310000000a000000001f000000100000004d006900630072006f0073006f00660074002000530074006f00720065000000000000002d00000031535053b377ed0d14c66c45ae5b285b38d7b01b110000000700000000130000000000000000000000000000000000120000002b00efbee21ce42ef73cd701a3055e0000001d00efbe02004d006900630072006f0073006f00660074002e00570069006e0064006f0077007300530074006f00720065005f003800770065006b0079006200330064003800620062007700650021004100700070000000a305260000001e00efbe0200530079007300740065006d00500069006e006e00650064000000a3050000ff" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MicrosoftEdge.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\msedge.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MicrosoftEdge.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\msedge.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
 	call :disable_task "\MicrosoftEdgeUpdateTaskMachineCore"
 	call :disable_task "\MicrosoftEdgeUpdateTaskMachineUA"
 	set timerEnd=!time!
@@ -1284,9 +1290,9 @@ if !errorlevel!==1 (
 	%rga% "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowCortanaButton" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Experience" /v "AllowCortana" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	call :remove_uwp Microsoft.549981C3F5F10
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Cortana.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SearchApp.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SearchUI.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Cortana.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SearchApp.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SearchUI.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" /v "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" /t REG_SZ /d "BlockCortana|Action=Block|Active=TRUE|Dir=Out|App=C:\Windows\systemapps\microsoft.windows.cortana_cw5n1h2txyewy\SearchUI.exe|Name=Search and Cortana application|" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" /v "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" /t REG_SZ /d "BlockSearch|Action=Block|Active=TRUE|Dir=Out|App=C:\Windows\systemapps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp.exe|Name=Search application|" /f 1>> %logfile% 2>>&1
 	call :acl_file-folders "%SystemRoot%\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\SearchUI.exe"
@@ -1500,8 +1506,6 @@ ipconfig /registerdns 1>> %logfile% 2>>&1
 %rga% "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "MaxSockAddrLength" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Winsock" /v "MinSockAddrLength" /t REG_DWORD /d "16" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SYSTEM\CurrentControlSet\services\TCPIP6\Parameters" /v "DisabledComponents" /t REG_DWORD /d "255" /f 1>> %logfile% 2>>&1
-rem Служба поддержки интернет-протокола помогает извлекать и изменять параметры конфигурации сети.
-rem call :disable_svc iphlpsvc
 %rga% "HKLM\SYSTEM\CurrentControlSet\Services\WinSock2\Parameters" /v "Ws2_32NumHandleBuckets" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RemoteComputer\NameSpace\{D6277990-4C6A-11CF-8D87-00AA0060F5BF}" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Policies\Microsoft\Windows\Psched" /v "MaxOutstandingSends" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -1764,8 +1768,8 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 24.%clr%[36m Дополнительная настройка Firefox NCSI (индикатора состояния сетевого подключения).%clr%[92m
-@echo Дополнительная настройка Firefox NCSI (индикатора состояния сетевого подключения). 1>> %logfile%
+@echo %clr%[91m 24.%clr%[36m Дополнительная настройка Microsoft NCSI (индикатора состояния сетевого подключения).%clr%[92m
+@echo Дополнительная настройка Microsoft NCSI (индикатора состояния сетевого подключения). 1>> %logfile%
 set timerStart=!time!
 rem %rga% "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "NoActiveProbe" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 rem %rga% "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v "DisablePassivePolling" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -1912,6 +1916,7 @@ netsh int ipv6 delete route ::/0 Teredo 1>> %logfile% 2>>&1
 netsh int ipv6 isatap set state disabled 1>> %logfile% 2>>&1
 netsh int teredo set state disabled 1>> %logfile% 2>>&1
 netsh int ipv6 6to4 set state state=disabled undoonstop=disabled 1>> %logfile% 2>>&1
+call :disable_svc iphlpsvc
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -2417,7 +2422,7 @@ echo. 1>> %logfile%
 @echo Отключить автоматическую перезагрузку и уведомление после завершения обновления. 1>> %logfile%
 set timerStart=!time!
 %rga% "HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" /v "RestartNotificationsAllowed2" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -2703,8 +2708,10 @@ call :disable_svc GraphicsPerfSvc
 call :disable_svc GpuEnergyDrv
 %rga% "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager" /v "AlpcWakePolicy" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SYSTEM\CurrentControlSet\Services\xusb22\Parameters" /v "IoQueueWorkItem" /t REG_DWORD /d "10" /f 1>> %logfile% 2>>&1
-call :disable_svc bam
-call :disable_svc dam
+call :auto_svc bam
+call :auto_svc dam
+rem call :disable_svc bam :: Автообновление файлов на рабочем столе (Desktop Activity Moderator Driver)
+rem call :disable_svc dam :: Автообновление файлов на рабочем столе (Background Activity Moderator Driver)
 call :disable_svc SystemUsageReportSvc_QUEENCREEK
 call :disable_svc 'Intel(R) SUR QC SAM'
 call :disable_svc kdnic
@@ -3376,7 +3383,6 @@ echo. 1>> %logfile%
 @echo Отключить автозапуск CD-DVD и съемных устройств. 1>> %logfile%
 set timerStart=!time!
 call :disable_svc ShellHWDetection
-call :disable_svc stisvc
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3503,7 +3509,7 @@ echo. 1>> %logfile%
 set timerStart=!time!
 %rga% "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarAppsVisibleInTabletMode" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %rga% "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ImmersiveShell" /v "ConvertibleSlateModePromptPreference" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-call :disable_svc_sudo TabletInputService
+rem call :disable_svc_sudo TabletInputService
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -3910,6 +3916,7 @@ echo. 1>> %logfile%
 @echo Выключить гибернацию и отключить быстрый запуск. Примечание: при включении быстрого запуска пропадает возможность выключения ПК. Отключение гибернации полезно для долговечности SSD накопителей. 1>> %logfile%
 set timerStart=!time!
 powercfg /h off 1>> %logfile% 2>>&1
+wmic pagefileset where name="%SystemDrive%\\pagefile.sys" delete 1>> %logfile% 2>>&1
 %rga% "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "HibernateEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "HiberFileSizePercent" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" /v "ShowHibernateOption" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -4952,9 +4959,9 @@ echo. 1>> %logfile%
 @echo %clr%[36m Отключить запуска экранного диктора и функции распознавания голоса.%clr%[92m
 @echo Отключить запуска экранного диктора и функции распознавания голоса. 1>> %logfile%
 set timerStart=!time!
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Narrator.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sapisvr.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SpeechUXWiz.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Narrator.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
+%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sapisvr.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
+%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SpeechUXWiz.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5241,7 +5248,7 @@ if !errorlevel!==1 (
 @echo %clr%[36m Установить кодек для воспроизведения видео в формате High Efficiency Video Coding (HEVC) в любом видеоприложении.%clr%[92m
 @echo Установить кодек для воспроизведения видео в формате High Efficiency Video Coding (HEVC) в любом видеоприложении. 1>> %logfile%
 set timerStart=!time!
-%PS% "Add-AppxPackage -Path '%~dp0Codecs\Microsoft.HEVCVideoExtension_1.0.42701.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
+%PS% "Add-AppxPackage -Path '%~dp0Codecs\Microsoft.HEVCVideoExtension_1.0.50361.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5249,9 +5256,7 @@ echo. 1>> %logfile%
 @echo %clr%[36m Установить кодек для открытия изображений или медиаконтейнеров в формате High Efficiency Image File Format (HEIF) в любом фоторедакторе.%clr%[92m
 @echo Установить кодек для открытия изображений или медиаконтейнеров в формате High Efficiency Image File Format (HEIF) в любом фоторедакторе. 1>> %logfile%
 set timerStart=!time!
-%rf% "%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.42621.0_x86__8wekyb3d8bbwe.Appx" 1>> %logfile% 2>>&1
-%rf% "%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.42621.0_x64__8wekyb3d8bbwe.Appx" 1>> %logfile% 2>>&1
-%PS% "Add-AppxPackage -Path '%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.43012.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
+%PS% "Add-AppxPackage -Path '%~dp0Codecs\Microsoft.HEIFImageExtension_1.0.50272.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5427,10 +5432,6 @@ rem Драйвер фильтра облачных файлов OneDrive.
 call :disable_svc CldFlt
 rem Служба платформы подключенных пользовательских устройств и сценариев Universal Glass.
 call :disable_svc CDPUserSvc
-rem Пользовательская служба Push-уведомлений. Именно она отвечает за центр уведомлений.
-rem call :disable_svc WpnUserService
-rem Служба системы push-уведомлений Windows.
-rem call :disable_svc WpnService
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5721,8 +5722,8 @@ call :acl_file-folders "%ProgramData%\Microsoft\Diagnosis\ETLLogs\AutoLogger\Aut
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Application-Experience/Program-Telemetry" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Application-Experience/Steps-Recorder" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\PerfTrack" /v "Disabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DeviceCensus.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\CompatTelRunner.exe" /v Debugger /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DeviceCensus.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
+%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\CompatTelRunner.exe" /v Debugger /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
 for /f "tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI" /v "LastLoggedOnUserSID" 2^>nul') do (set UID=%%b)
 %rga% "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\features\%UID%" /v "FeatureStates" /t REG_SZ /d "828" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Suggested Sites" /v "Enabled" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
@@ -5840,6 +5841,59 @@ call :disable_task "\Microsoft\Windows\Workplace Join\Automatic-Device-Join"
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\AirSpaceChannel" /v "Enabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rf% "%SystemRoot%\System32\Winevt\Logs\AirSpaceChannel.etl" 1>> %logfile% 2>>&1
 auditpol /set /subcategory:"{0CCE9226-69AE-11D9-BED3-505054503030}" /success:disable /failure:disable 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
+@echo %clr%[36m Отключить бесполезные службы.%clr%[92m
+@echo Отключить бесполезные службы. 1>> %logfile%
+set timerStart=!time!
+rem Пользовательская служба Push-уведомлений. Именно она отвечает за центр уведомлений.
+rem call :disable_svc WpnUserService
+rem Служба системы push-уведомлений Windows.
+rem call :disable_svc WpnService
+rem Программа архивации данных.
+call :disable_svc SDRSVC
+rem Служба пространственных данных.
+call :disable_svc SharedRealitySvc
+rem Проверка подлинности на основе физических параметров.
+call :disable_svc NaturalAuthentication
+rem Служба автоматического обнаружения веб-прокси WinHTTP.
+call :disable_svc_sudo WinHttpAutoProxySvc
+rem Модуль запуска службы Windows Media Center.
+call :disable_svc ehstart
+rem Служба планировщика Windows Media Center.
+call :disable_svc ehSched
+rem Служба ресивера Windows Media Center.
+call :disable_svc ehRecvr
+rem Служба медиаприставки Windows Media Center.
+call :disable_svc Mcx2Svc
+rem Веб-клиент.
+call :disable_svc WebClient
+rem Ловушка SNMP.
+call :disable_svc SNMPTRAP
+rem Служба перечислителя переносных устройств.
+call :disable_svc WPDBusEnum
+rem Автономные файлы.
+call :disable_svc CscService
+rem Сетевой вход в систему.
+call :disable_svc NetLogon
+rem Служба общего доступа к портам Net.Tcp.
+call :disable_svc NetTcpPortSharing
+rem Публикация ресурсов обнаружения функции.
+call :disable_svc FDResPub
+rem Хост поставщика функции обнаружени.
+call :disable_svc fdPHost
+rem Служба факсов.
+call :disable_svc Fax
+rem Координатор распределенных транзакций.
+call :disable_svc MSDTC
+rem Клиент отслеживания изменившихся связей.
+call :disable_svc TrkWks
+rem Распространение сертификата.
+call :disable_svc CertPropSvc
+rem Служба шлюза уровня приложения.
+call :disable_svc ALG
 rem Служба заливает в облако все данные от приложений.
 call :disable_svc DcpSvc
 rem Служба кошелька.
@@ -5852,12 +5906,6 @@ rem Служба демонстрации магазина.
 call :disable_svc RetailDemo
 rem Управление профилями и учетными записями на настроенном устройстве с общим ПК.
 call :disable_svc shpamsvc
-rem Служба удалённых рабочих столов.
-call :auto_svc TermService
-rem Перенаправитель портов пользовательского режима служб удаленных рабочих столов.
-call :auto_svc UmRdpService
-rem Служба настройки сервера удаленных рабочих столов.
-call :auto_svc SessionEnv
 rem Рекомендованная служба устранения неполадок.
 call :disable_svc TroubleshootingSvc
 rem Cлужба для синхронизации почты, контактов, календаря и некоторых других пользовательских данных.
@@ -5880,6 +5928,12 @@ rem Пользовательская служба буфера обмена.
 call :disable_svc cbdhsvc
 rem Смарт-карты для Windows.
 call :disable_svc SCardSvr
+rem Служба перечисления устройств чтения смарт-карт.
+call :disable_svc ScDeviceEnum
+rem Смарт-карты для Windows.
+call :disable_svc SCPolicySvc
+rem Система управления идентификацией.
+call :disable_svc idsvc
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -6020,8 +6074,8 @@ call :disable_task "\Microsoft\Office\OfficeTelemetry\OfficeTelemetryAgentLogOn2
 call :disable_task "\Microsoft\Office\Office 15 Subscription Heartbeat"
 call :disable_task "\Microsoft\Office\OfficeTelemetryAgentFallBack"
 call :disable_task "\Microsoft\Office\OfficeTelemetryAgentLogOn"
-call :disable_svc_sudo ClickToRunSvc
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\OfficeClickToRun.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+call :auto_svc ClickToRunSvc
+rem %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\OfficeClickToRun.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1 :: Служба необхожима для нормальной работы MS Office
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -6056,6 +6110,7 @@ echo. 1>> %logfile%
 @echo Отключить задачи телеметрии Intel. 1>> %logfile%
 set timerStart=!time!
 for /f "tokens=3* delims=\" %%i in ('schtasks /query /fo list ^| find /i "IntelSURQC"') do call :disable_task \%%i
+call :disable_svc IntelTA
 call :disable_task "\Intel PTT EK Recertification"
 call :disable_task "\USER_ESRV_SVC_QUEENCREEK"
 set timerEnd=!time!
@@ -6067,7 +6122,7 @@ echo. 1>> %logfile%
 set timerStart=!time!
 %rga% "HKLM\SOFTWARE\Policies\Mozilla\Firefox" /v "DisableTelemetry" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Policies\Mozilla\Firefox" /v "DisableDefaultBrowserAgent" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-for /f "tokens=3* delims=\" %%i in ('schtasks /query /fo list ^| find /i "Firefox"') do call :disable_task \%%i
+for /f "tokens=3* delims=\" %%i in ('schtasks /query /fo list ^| find /i "Firefox"') do call :disable_task "\%%i"
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -6082,7 +6137,7 @@ icacls "%localappdata%\Google\Chrome\User Data\SwReporter" /inheritance:r /deny 
 cacls "%localappdata%\Google\Chrome\User Data\SwReporter" /e /c /d %username% 1>> %logfile% 2>>&1
 %rga% "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "DisallowRun" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %rga% "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\DisallowRun" /v "1" /t REG_SZ /d "software_reporter_tool.exe" /f 1>> %logfile% 2>>&1
-%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\software_reporter_tool.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\System32\taskkill.exe" /f 1>> %logfile% 2>>&1
+%rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\software_reporter_tool.exe" /v "Debugger" /t REG_SZ /d "%SystemRoot%\Tools\Empty.exe" /f 1>> %logfile% 2>>&1
 call :disable_task "\GoogleUpdateTaskMachineCore"
 call :disable_task "\GoogleUpdateTaskMachineUA"
 call :disable_svc gupdate
@@ -6140,10 +6195,17 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Включить шину RDP.%clr%[92m
+@echo %clr%[36m Включить шину RDP и службы удаленного рабочего стола.%clr%[92m
 @echo Включить шину RDP. 1>> %logfile%
 set timerStart=!time!
+rem Шина RDP.
 call :delayed_svc rdpbus
+rem Служба удалённых рабочих столов.
+call :auto_svc TermService
+rem Перенаправитель портов пользовательского режима служб удаленных рабочих столов.
+call :auto_svc UmRdpService
+rem Служба настройки сервера удаленных рабочих столов.
+call :auto_svc SessionEnv
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -6353,6 +6415,7 @@ if !errorlevel!==1 (
 	start "" /wait %~dp0\..\Installers\EasyServicesOptimizer.exe
 	start "" /wait %~dp0\..\Installers\EjectFlash.exe
 	start "" /wait %~dp0\..\Installers\Everything.exe
+	start "" /wait %~dp0\..\Installers\FixPrintSpooler.exe
 	start "" /wait %~dp0\..\Installers\FixWin.exe
 	start "" /wait %~dp0\..\Installers\GoPing.exe
 	start "" /wait %~dp0\..\Installers\herdProtect.exe
@@ -6609,8 +6672,8 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_user" /ve /t REG_SZ /d "CMD от имени пользователя" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_user" /v "Icon" /t REG_SZ /d "%SystemRoot%\System32\cmd.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cmd_user\command" /ve /t REG_SZ /d "%SystemRoot%\system32\cmd.exe /s /k set __COMPAT_LAYER=RunAsInvoker & pushd \"%%v\"" /f 1>> %logfile% 2>>&1
-	rem Цвет командной строки. С ограниченными правами 0A (зеленый текст на черном фоне) с правами администратора 0C (красный текст на черном фоне)
-	%rga% "HKLM\SOFTWARE\Microsoft\Command Processor" /v "AutoRun" /t REG_SZ /d "cls && reg query HKEY_USERS\S-1-5-19\Environment /v TEMP 2>&1 | findstr /i /c:REG_EXPAND_SZ 2>&1 >nul && (color 0C) || (color 0A)" /f 1>> %logfile% 2>>&1
+	rem Цвет командной строки. С ограниченными правами 09 (синий текст на черном фоне) с правами администратора 08 (серый текст на черном фоне)
+	%rga% "HKLM\SOFTWARE\Microsoft\Command Processor" /v "AutoRun" /t REG_SZ /d "cls && reg query HKEY_USERS\S-1-5-19\Environment /v TEMP 2>&1 | findstr /i /c:REG_EXPAND_SZ 2>&1 >nul && (color 08) || (color 09)" /f 1>> %logfile% 2>>&1
 	rem Удалить пункт "Восстановить прежнюю версию" из контекстного меню Проводника
 	%rgd% "HKCR\AllFilesystemObjects\shellex\ContextMenuHandlers\{596AB062-B4D2-4215-9F74-E9109B0A8153}" /f 1>> %logfile% 2>>&1
 	%rgd% "HKCR\Directory\shellex\ContextMenuHandlers\{596AB062-B4D2-4215-9F74-E9109B0A8153}" /f 1>> %logfile% 2>>&1
@@ -6630,7 +6693,8 @@ if !errorlevel!==1 (
 	%rga% "HKCR\Directory\Background\shell\Eject" /v "MUIVerb" /t REG_SZ /d "Быстрое извлечение съемных носителей" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\Background\shell\Eject" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\EjectFlash\RemoveDrive.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\Background\shell\Eject" /v "Position" /t REG_SZ /d "Top" /f 1>> %logfile% 2>>&1
-	%rga% "HKCR\Directory\Background\shell\Eject\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevatecmd runassystem \"wscript.exe %SystemRoot%\Tools\EjectFlash\EjectFlash.vbs\"" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\Directory\Background\shell\Eject" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\Directory\Background\shell\Eject\command" /ve /t REG_EXPAND_SZ /d "wscript.exe %SystemRoot%\Tools\EjectFlash\EjectFlash.vbs" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\Background\shell\Refresh" /v "MUIVerb" /t REG_SZ /d "Обновить иконки/папки (2x)" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\Background\shell\Refresh" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\Refresh.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\Background\shell\Refresh" /v "Position" /t REG_SZ /d "Top" /f 1>> %logfile% 2>>&1
@@ -6667,17 +6731,6 @@ if !errorlevel!==1 (
 	%rga% "HKCR\Directory\Background\Shell\PowerMenu" /v "SubCommands" /t REG_SZ /d "keylock;lockoffmon;lock;switch;logoff;sleep;hibernate;rrestart;restart;shutdown;hybridshutdown;cancelshutdown" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\Background\Shell\PowerMenu" /v "Icon" /t REG_SZ /d "shell32.dll,215" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\Background\Shell\PowerMenu" /v "Position" /t REG_SZ /d "Bottom" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix" /v "MUIVerb" /t REG_SZ /d "Исправить различные проблемы с сетью" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix" /v "SubCommands" /t REG_SZ /d "intrep_x86;intrep_x64" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ComIntRep\ComIntRep.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock" /v "MUIVerb" /t REG_SZ /d "Лок/анлок мыши и клавиатуры (CtrLALtZ)" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock" /v "SubCommands" /t REG_SZ /d "keylock_32;keylock_64" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock" /v "Position" /t REG_SZ /d "Bottom" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /v "MUIVerb" /t REG_SZ /d "Очистить все неиспользуемые устройства" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /v "SubCommands" /t REG_SZ /d "drvcln_x86;drvcln_x64" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /v "Icon" /t REG_SZ /d "devmgr.dll,4" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /v "Position" /t REG_SZ /d "Bottom" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\godmode" /ve /t REG_SZ /d "Режим Бога" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\godmode" /v "Icon" /t REG_SZ /d "imageres.dll,-1033" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\godmode\command" /ve /t REG_SZ /d "explorer shell:::{ED7BA470-8E54-465E-825C-99712043E01C}" /f 1>> %logfile% 2>>&1
@@ -6717,11 +6770,11 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle" /ve /t REG_SZ /d "Очистить корзину и временные файлы" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle" /v "Icon" /t REG_SZ /d "shell32.dll,-254" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\ClearTrashTemp.exe a" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearrecycle\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ClearTrashTemp.exe a" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk" /ve /t REG_SZ /d "Полная очистка дисков от мусора" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk" /v "Icon" /t REG_SZ /d "cleanmgr.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk\command" /ve /t REG_SZ /d "%SystemRoot%\system32\cmd.exe /c cleanmgr /sageset:1 & cleanmgr /sagerun:1" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\cleardsk\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c cleanmgr /sageset:1 & cleanmgr /sagerun:1" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg" /ve /t REG_SZ /d "Оптимизировать и сжать реестр" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\clearreg" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\RegistryFirstAid\RFA.exe" /f 1>> %logfile% 2>>&1
@@ -6750,12 +6803,12 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\herdProtect\herdProtectScan.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\virscan\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\herdProtect\herdProtectScan.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_32" /ve /t REG_SZ /d "Для 32х битной системы" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_32" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_32\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_64" /ve /t REG_SZ /d "Для 64х битной системы" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_64" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze_x64.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_64\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze_x64.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock" /ve /t REG_SZ /d "Лок/анлок мыши и клавиатуры (CtrLALtZ)" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze_%arch%.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\KeyFreeze\KeyFreeze_%arch%.exe" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock" /v "SubCommands" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_32" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\keylock_64" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lockoffmon" /ve /t REG_SZ /d "Блокировка и выключение монитора" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lockoffmon" /v "Icon" /t REG_SZ /d "imageres.dll,-101" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\lockoffmon\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\MonitorOff.bat" /f 1>> %logfile% 2>>&1
@@ -6807,17 +6860,20 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\winmanager" /ve /t REG_SZ /d "Управление зависшими окнами" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\winmanager" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\winmanager" /v "Icon" /t REG_SZ /d "shell32.dll,-3" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\winmanager\command" /ve /t REG_EXPAND_SZ /d "devxexec.exe /user:TrustedInstaller %SystemRoot%\Tools\WindowManager.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\winmanager\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\WindowManager.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\webcam" /ve /t REG_SZ /d "Вкл/Выкл веб-камеру" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\webcam" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\WebCam\WebCam.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\webcam\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\WebCam\WebCam.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\screen" /ve /t REG_SZ /d "Сделать скриншот экрана" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\screen" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\Screenshoter.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\screen\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\Screenshoter.exe" /f 1>> %logfile% 2>>&1
+	set calc=C:\Windows\System32\calc.exe
+	if exist "C:\Windows\System32\calc1.exe" set calc=C:\Windows\System32\calc1.exe
+	if exist "C:\Windows\SysWOW64\calc1.exe" set calc=C:\Windows\SysWOW64\calc1.exe
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\calc" /v "CommandFlags" /t REG_DWORD /d "32" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\calc" /ve /t REG_SZ /d "Калькулятор" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\calc" /v "Icon" /t REG_SZ /d "calc.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\calc\command" /ve /t REG_SZ /d "calc.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\calc" /v "Icon" /t REG_SZ /d "%calc%" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\calc\command" /ve /t REG_SZ /d "%calc%" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\notepad" /ve /t REG_SZ /d "Блокнот" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\notepad" /v "Icon" /t REG_SZ /d "notepad.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\notepad\command" /ve /t REG_SZ /d "notepad.exe" /f 1>> %logfile% 2>>&1
@@ -6831,8 +6887,8 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\snip" /v "Icon" /t REG_SZ /d "SnippingTool.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\snip\command" /ve /t REG_SZ /d "SnippingTool.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\iexplore" /ve /t REG_SZ /d "Internet Explorer" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\iexplore" /v "Icon" /t REG_SZ /d "iexplore.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\iexplore\command" /ve /t REG_SZ /d "iexplore.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\iexplore" /v "Icon" /t REG_SZ /d "%ProgramFiles%\Internet Explorer\iexplore.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\iexplore\command" /ve /t REG_SZ /d "%ProgramFiles%\Internet Explorer\iexplore.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\osk" /ve /t REG_SZ /d "Экранная клавиатура" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\osk" /v "Icon" /t REG_SZ /d "osk.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\osk\command" /ve /t REG_SZ /d "osk.exe" /f 1>> %logfile% 2>>&1
@@ -6845,7 +6901,7 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reloadex" /ve /t REG_SZ /d "Перезагрузить оболочку (проводник)" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reloadex" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reloadex" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\Rexplorer.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reloadex\command" /ve /t REG_EXPAND_SZ /d "devxexec.exe /user:TrustedInstaller %SystemRoot%\Tools\Rexplorer.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reloadex\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\Rexplorer.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\runblock" /ve /t REG_SZ /d "Блокировать важные приложения" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\runblock" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\runblock" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\RunBlock\RunBlock.exe" /f 1>> %logfile% 2>>&1
@@ -6857,7 +6913,7 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reiconcache" /ve /t REG_SZ /d "Перестроить кэш значков" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reiconcache" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reiconcache" /v "Icon" /t REG_SZ /d "shell32.dll,-289" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reiconcache\command" /ve /t REG_EXPAND_SZ /d "devxexec.exe /user:TrustedInstaller %SystemRoot%\Tools\ReIconCache.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\reiconcache\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\ReIconCache.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\dpstyle" /ve /t REG_SZ /d "Просмотреть разметку дисков/разделов" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\dpstyle" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\DPStyle.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\dpstyle\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\DPStyle.exe" /f 1>> %logfile% 2>>&1
@@ -6877,35 +6933,33 @@ if !errorlevel!==1 (
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixbrowsers" /ve /t REG_SZ /d "Исправить ошибки во многих браузерах" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixbrowsers" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixbrowsers" /v "Icon" /t REG_SZ /d "ieframe.dll,-190" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixbrowsers\command" /ve /t REG_EXPAND_SZ /d "devxexec.exe /user:TrustedInstaller %SystemRoot%\Tools\fixBrowsers.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixbrowsers\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\fixBrowsers.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\macchanger" /ve /t REG_SZ /d "Сменить/восстановить MAC-адрес" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\macchanger" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\macchanger" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\MacAddrChanger.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\macchanger\command" /ve /t REG_EXPAND_SZ /d "devxexec.exe /user:TrustedInstaller %SystemRoot%\Tools\MacAddrChanger.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\macchanger\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\MacAddrChanger.exe" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\tcpoptimizer" /ve /t REG_SZ /d "Оптимизация сетевого соединения" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\tcpoptimizer" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\tcpoptimizer" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\TCPOptimizer.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\tcpoptimizer\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\TCPOptimizer.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x86" /ve /t REG_SZ /d "Для 32х битной системы" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x86" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x86" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ComIntRep\ComIntRep.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x86\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ComIntRep\ComIntRep.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x64" /ve /t REG_SZ /d "Для 64х битной системы" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x64" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x64" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ComIntRep\ComIntRep_x64.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x64\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ComIntRep\ComIntRep_x64.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\tcpoptimizer\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevate %SystemRoot%\Tools\TCPOptimizer.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix" /ve /t REG_SZ /d "Исправить различные проблемы с сетью" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ComIntRep\ComIntRep_%arch%.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ComIntRep\ComIntRep_%arch%.exe" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\netfix" /v "SubCommands" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x86" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\intrep_x64" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixprints" /ve /t REG_SZ /d "Исправить диспетчер очереди печати" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixprints" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixprints" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\fixPrintS.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixprints\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\fixPrintS.exe" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x86" /ve /t REG_SZ /d "Для 32х битной системы" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x86" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x86" /v "Icon" /t REG_SZ /d "devmgr.dll,4" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x86\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevatecmd runassystem \"%SystemRoot%\Tools\DriveCleanup\DriveCleanup_x86.exe -n\"" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x64" /ve /t REG_SZ /d "Для 64х битной системы" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x64" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x64" /v "Icon" /t REG_SZ /d "devmgr.dll,4" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x64\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevatecmd runassystem \"%SystemRoot%\Tools\DriveCleanup\DriveCleanup_x64.exe -n\"" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixprints" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\FixPrintSpooler\FixSpooler_%arch%.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\fixprints\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\FixPrintSpooler\FixSpooler_%arch%.exe" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /ve /t REG_SZ /d "Очистить все неиспользуемые устройства" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /v "Icon" /t REG_SZ /d "devmgr.dll,4" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean\command" /ve /t REG_EXPAND_SZ /d "nircmdc elevatecmd runassystem \"%SystemRoot%\Tools\DriveCleanup\DriveCleanup_%arch%.exe -n\"" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drive-clean" /v "SubCommands" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x86" /f 1>> %logfile% 2>>&1
+	%rgd% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\drvcln_x64" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\res_reicon" /ve /t REG_SZ /d "&Восстановить схему расположения" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\res_reicon" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\res_reicon" /v "Icon" /t REG_EXPAND_SZ /d "%SystemRoot%\Tools\ReIcon\ReIcon.exe,5" /f 1>> %logfile% 2>>&1
@@ -7016,6 +7070,32 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
+@echo %clr%[36m Добавить в автозагрузку утилиту ClipAngel для захвата данных в буфере обмена для последующего просмотра?.%clr%[92m
+choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+if !errorlevel!==1 (
+	@echo %clr%[0m %clr%[93mДобавление в автозагрузку утилиты ClipAngel для захвата данных в буфере обмена для последующего просмотра. Пожалуйста, подождите...%clr%[92m
+	@echo Добавление в автозагрузку утилиты ClipAngel для захвата данных в буфере обмена для последующего просмотра. 1>> %logfile%
+	set timerStart=!time!
+	start "" /wait "%~dp0..\Installers\ClipAngel.exe"
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "ClipAngel" /t REG_SZ /d "%SystemRoot%\Tools\ClipAngel\ClipAngel.exe" /f 1>> %logfile% 2>>&1
+	set timerEnd=!time!
+	call :timer
+	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	echo. 1>> %logfile%
+)
+@echo %clr%[36m Добавить в автозагрузку утилиту X-Mouse Button Control для тонкой настройки дополнительных возможностей мыши?.%clr%[92m
+choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+if !errorlevel!==1 (
+	@echo %clr%[0m %clr%[93mДобавление в автозагрузку утилиты X-Mouse Button Control для тонкой настройки дополнительных возможностей мыши. Пожалуйста, подождите...%clr%[92m
+	@echo Добавление в автозагрузку утилиты X-Mouse Button Control для тонкой настройки дополнительных возможностей мыши. 1>> %logfile%
+	set timerStart=!time!
+	start "" /wait "%~dp0..\Installers\XMouseButtonControl.exe"
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "XMouseButtonControl" /t REG_SZ /d "%SystemRoot%\Tools\XMouseButtonControl\XMouseButtonControl.exe" /f 1>> %logfile% 2>>&1
+	set timerEnd=!time!
+	call :timer
+	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	echo. 1>> %logfile%
+)
 rem #########################################################################################################################################################################################################################
 @echo %clr%[36m Уменьшить размер буфера мыши и клавиатуры.%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m если мышь ведет себя некорректно, увеличьте данные значения до 100.
 @echo Уменьшить размер буфера мыши и клавиатуры. Предупреждение: если мышь ведет себя некорректно, увеличьте данные значения до 100. 1>> %logfile%
@@ -7034,8 +7114,8 @@ rem set timerEnd=!time!
 rem call :timer
 rem @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 rem echo. 1>> %logfile% 2>>&1
-@echo %clr%[36m Отключить PPM и уменьшить задержку в играх.%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m если после отключения параметров производительность снизилась, выставите значения на 0.
-@echo Отключить PPM и уменьшить задержку в играх. Предупреждение: если после отключения параметров производительность снизилась, выставите значения на 0. 1>> %logfile%
+@echo %clr%[36m Отключить PPM, тем самым уменьшить задержку в играх и нагрузку на SSD.%clr%[92m
+@echo Отключить PPM, тем самым уменьшить задержку в играх и нагрузку на SSD. 1>> %logfile%
 set timerStart=!time!
 call :disable_svc AmdK8
 call :disable_svc intelppm
@@ -7062,17 +7142,19 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[36m Установить UWP панель управления NVIDIA v.8.1.961.0?%clr%[92m
-choice /c yn /n /t %autoChoose% /d n /m %keySelN%
-if !errorlevel!==1 (
-	@echo %clr%[0m %clr%[93mУстановка панели управления NVIDIA v.8.1.961.0. Пожалуйста, подождите...%clr%[92m
-	@echo Установка панели управления NVIDIA v.8.1.961.0. 1>> %logfile%
-	set timerStart=!time!
-	%PS% "Add-AppxPackage -Path '%~dp0NVIDIA\NVIDIACorp.NVIDIAControlPanel_8.1.961.0_x64__56jybvy8sckqj.Appx'" 1>> %logfile% 2>>&1
-	set timerEnd=!time!
-	call :timer
-	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
-	echo. 1>> %logfile%
+if "%arch%"=="x64" (
+	@echo %clr%[36m Установить UWP панель управления NVIDIA v.8.1.962.0?%clr%[92m
+	choice /c yn /n /t %autoChoose% /d n /m %keySelN%
+	if !errorlevel!==1 (
+		@echo %clr%[0m %clr%[93mУстановка панели управления NVIDIA v.8.1.962.0. Пожалуйста, подождите...%clr%[92m
+		@echo Установка панели управления NVIDIA v.8.1.962.0. 1>> %logfile%
+		set timerStart=!time!
+		%PS% "Add-AppxPackage -Path '%~dp0NVIDIA\NVIDIACorp.NVIDIAControlPanel_8.1.962.0_x64__56jybvy8sckqj.Appx'" 1>> %logfile% 2>>&1
+		set timerEnd=!time!
+		call :timer
+		@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
+		echo. 1>> %logfile%
+	)
 )
 @echo %clr%[36m Включить поддержку сглаживания анимации в драйвере NVIDIA (SILK Smooth).%clr%[92m %clr%[7;31mПримечание:%clr%[0m%clr%[36m%clr%[92m помогает при микрофризах в играх. Последняя поддержка SILK содержится в драйвере 442.74 и настраивается в панели управления NVIDIA.
 @echo Включить поддержку сглаживания анимации в драйвере NVIDIA (SILK Smooth). Примечание: помогает при микрофризах в играх. Последняя поддержка SILK содержится в драйвере 442.74 и настраивается в панели управления NVIDIA. 1>> %logfile%
@@ -7183,7 +7265,7 @@ set timerStart=!time!
 call :kill "quietHDD.exe"
 start "" /wait "%~dp0..\Installers\quietHDD.exe"
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "quietHDD" /t REG_SZ /d "\"%SystemRoot%\Tools\quietHDD\quietHDD.exe\" /NOTRAY /ACAPMVALUE:255 /DCAPMVALUE:255 /ACAAMVALUE:254 /DCAAMVALUE:254 /NOWARN" /f 1>> %logfile% 2>>&1
-reg unload HKU\.DEFAULT 1>> %logfile% 2>>&1
+reg unload "HKU\.DEFAULT" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -7229,6 +7311,20 @@ if !errorlevel!==1 (
 	%PS% "Add-AppxPackage -Path '%~dp0FSClient\FSClient.UWP.appxbundle'" 1>> %logfile% 2>>&1
 	%rf% "%~dp0FSClient\FSClient.UWP.cer" 1>> %logfile% 2>>&1
 	%rf% "%~dp0FSClient\FSClient.UWP.appxbundle" 1>> %logfile% 2>>&1
+	set timerEnd=!time!
+	call :timer
+	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	echo. 1>> %logfile%
+)
+@echo %clr%[36m Выставить значки панели задач по центру и спрятать значок Пуск ^(стиль Windows 11^)?%clr%[92m
+choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+if !errorlevel!==1 (
+	@echo %clr%[0m %clr%[93mУстановка значков панели задач по центру и скрытие значка Пуск ^(стиль Windows 11^). Пожалуйста, подождите...%clr%[92m
+	@echo Установка значков панели задач по центру и скрытие значка Пуск ^(стиль Windows 11^). 1>> %logfile%
+	set timerStart=!time!
+	call :kill "TaskbarX.exe"
+	start "" /wait "%~dp0..\Installers\TaskbarX.exe"
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "TaskbarX" /t REG_SZ /d "\"%SystemRoot%\Tools\TaskbarX\TaskbarX.exe\" -tbs=1 -color=0;0;0;50 -tpop=100 -tsop=100 -as=cubiceaseinout -obas=cubiceaseinout -tbr=0 -asp=300 -ptbo=0 -stbo=0 -lr=400 -oblr=400 -sr=0 -sr2=0 -sr3=0 -ftotc=1 -rzbt=1 -hps=1 -hss=1" /f 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -7282,14 +7378,15 @@ if !errorlevel!==1 (
 	xcopy "%~dp0..\Cleanmgr+" "%SystemRoot%\Tools\Cleanmgr+\*.*" /e /c /i /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0..\Tools\intPolicy_%arch%.exe" "%SystemRoot%\Tools\intPolicy_%arch%.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0..\NV RGBFullRangeToggle\NV_RGBFullRangeToggle.exe" "%SystemRoot%\Tools\NV_RGBFullRangeToggle.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
-	xcopy "%~dp0..\NVCleanstall\NVCleanstall_1.10.0.exe" "%SystemRoot%\Tools\NVCleanstall.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
-	xcopy "%~dp0..\QuickCpu 3.5.0.0" "%SystemRoot%\Tools\QuickCpu 3.5.0.0\*.*" /e /c /i /q /h /r /y 1>> %logfile% 2>>&1
+	xcopy "%~dp0..\NVCleanstall\NVCleanstall_1.13.0.exe" "%SystemRoot%\Tools\NVCleanstall.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
+	xcopy "%~dp0..\QuickCPU" "%SystemRoot%\Tools\QuickCpu\*.*" /e /c /i /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0..\SetFSB 2.2.129.95" "%SystemRoot%\Tools\SetFSB 2.2.129.95\*.*" /e /c /i /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0..\TimerTool\TimerTool.exe" "%SystemRoot%\Tools\TimerTool.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0..\Tools\REAL.exe" "%SystemRoot%\Tools\REAL.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0..\vibranceGUI 2.3.1.1\vibranceGUI.exe" "%SystemRoot%\Tools\vibranceGUI.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	start "" /wait "%~dp0..\Installers\CompatibilityManager.exe"
 	start "" /wait "%~dp0..\Installers\LatencyMon.exe"
+	start "" /wait "%~dp0..\Installers\ExecutionMaster.exe"
 	call :kill "ProcessLasso.exe"
 	call :kill "bitsumsessionagent.exe"
 	call :kill "srvstub.exe"
@@ -7309,21 +7406,22 @@ if !errorlevel!==1 (
 	nircmdc shortcut "%SystemRoot%\Tools\intPolicy_%arch%.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Настройка политики сродства прерывания драйверов" "" "%SystemRoot%\System32\setupapi.dll" 54
 	nircmdc shortcut "%SystemRoot%\Tools\NV_RGBFullRangeToggle.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Включение-отключение полного цветового диапазона на видеокартах NVIDIA (255 цветов в диапазоне)" "" "%SystemRoot%\System32\imageres.dll" 151
 	nircmdc shortcut "%SystemRoot%\Tools\NVCleanstall.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Загрузка и установка драйверов NVIDIA без телеметрии" "" "%SystemRoot%\Tools\NVCleanstall.exe"
-	nircmdc shortcut "%SystemRoot%\Tools\QuickCpu 3.5.0.0\QuickCPU.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Настройка и мониторинг производительности процессора" "" "%SystemRoot%\Tools\QuickCpu 3.5.0.0\QuickCPU.exe"
+	nircmdc shortcut "%SystemRoot%\Tools\QuickCpu\QuickCPU.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Настройка и мониторинг производительности процессора" "" "%SystemRoot%\Tools\QuickCpu\QuickCPU.exe"
 	nircmdc shortcut "%SystemRoot%\Tools\SetFSB 2.2.129.95\setfsb.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Изменение частоты системной шины FSB (используйте с осторожностью)" "" "%SystemRoot%\Tools\SetFSB 2.2.129.95\setfsb.exe"
 	nircmdc shortcut "%SystemRoot%\Tools\TimerTool.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Настройка разрешения высокоточного системного таймера" "" "%SystemRoot%\System32\setupapi.dll" 28
 	nircmdc shortcut "%SystemRoot%\Tools\REAL.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Уменьшение задержки звука на устройствах воспроизведения (после запуска приложение свернется в трей)" "--tray" "%SystemRoot%\Tools\REAL.exe"
 	nircmdc shortcut "%SystemRoot%\Tools\vibranceGUI.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Настройка цифровой вибрации и насыщенности в играх и приложениях" "" "%SystemRoot%\Tools\vibranceGUI.exe"
+	nircmdc shortcut "%SystemRoot%\Tools\ExecutionMaster\ExecutionMaster.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Добавление или именение разрешений на запуск приложений" "" "%SystemRoot%\Tools\ExecutionMaster\ExecutionMaster.exe"
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
-@echo %clr%[36m Выполнить обслуживание системы после настройки?%clr%[92m
+@echo %clr%[36m Выполнить сжатие двоичных файлов после настройки?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
-	@echo %clr%[0m %clr%[93mВыполняется сжатие двоичных файлов ОС. Это может занять ~30 минут. Пожалуйста, подождите...%clr%[92m
-	echo Выполняется сжатие двоичных файлов ОС. Это может занять ~30 минут. 1>> %logfile%
+	@echo %clr%[0m %clr%[93mВыполняется сжатие двоичных файлов ОС. Это может занять ~1 час. Пожалуйста, подождите...%clr%[92m
+	echo Выполняется сжатие двоичных файлов ОС. Это может занять ~1 час. 1>> %logfile%
 	set timerStart=!time!
 	compact /compactos:always 1>> %logfile% 2>>&1
 	compact /c /s:"%ProgramFiles%" /a /i /q /exe:lzx 1>> %logfile% 2>>&1
@@ -7351,7 +7449,7 @@ if !errorlevel!==1 (
 	compact /c "%SystemRoot%" /a /i /q /exe:lzx 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
-	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
+	@echo ОК %clr%[93m[%clr%[91m!hours!%clr%[0m часов%clr%[93m %clr%[91m!mins!%clr%[0m минут%clr%[93m %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
 start "" /wait /min %~dp0EmptyStandbyList.exe workingsets & start "" /wait /min %~dp0EmptyStandbyList.exe modifiedpagelist & start "" /wait /min %~dp0EmptyStandbyList.exe standbylist & start "" /wait /min %~dp0EmptyStandbyList.exe priority0standbylist

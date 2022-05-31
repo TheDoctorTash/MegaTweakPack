@@ -6,14 +6,12 @@
 
 Скрипт предназначен только для русскоязычных пользователей!<br>
 
-<<<<<<< HEAD
 Скачать архивом последнюю сборку MegaTweakPack можно отсюда - https://github.com/TheDoctorTash/MegaTweakPack/releases/download/0.9.5/MegaTweakPack_v0.9.5.zip
+
+=======
 
 v0.0.1-v0.9.0<br>
 Недокумментированные версии.<br>
-=======
-Скачать архивом последнюю сборку MegaTweakPack можно отсюда - https://github.com/TheDoctorTash/MegaTweakPack/releases/download/0.9.4/MegaTweakPack_v.0.9.4.zip
->>>>>>> 762d0be501dedc487da2f28b98f026d0574da646
 
 v0.9.1<br>
 Изменения:<br>

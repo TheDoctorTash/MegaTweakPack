@@ -5246,6 +5246,18 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
+@echo %clr%[36m Установить библиотеки Microsoft .NET и VC в систему для поддержки работы некоторых UWP приложении.%clr%[92m
+@echo Установить библиотеки Microsoft .NET и VC в систему для поддержки работы некоторых UWP приложении. 1>> %logfile%
+set timerStart=!time!
+	%PS% "Add-AppxPackage -Path '%~dp0Redist\Microsoft.NET.Native.Framework.1.7_1.7.27413.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
+	%PS% "Add-AppxPackage -Path '%~dp0Redist\Microsoft.NET.Native.Runtime.1.7_1.7.27422.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
+	%PS% "Add-AppxPackage -Path '%~dp0Redist\Microsoft.Services.Store.Engagement_10.0.19011.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
+	%PS% "Add-AppxPackage -Path '%~dp0Redist\Microsoft.Microsoft.VCLibs.140.00.UWPDesktop_14.0.30704.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
+	%PS% "Add-AppxPackage -Path '%~dp0Redist\Microsoft.VCLibs.140.00_14.0.30704.0_%arch%__8wekyb3d8bbwe.Appx'" 1>> %logfile% 2>>&1
+set timerEnd=!time!
+call :timer
+@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
+echo. 1>> %logfile%
 @echo %clr%[36m Установить кодек для воспроизведения видео в формате High Efficiency Video Coding (HEVC) в любом видеоприложении.%clr%[92m
 @echo Установить кодек для воспроизведения видео в формате High Efficiency Video Coding (HEVC) в любом видеоприложении. 1>> %logfile%
 set timerStart=!time!

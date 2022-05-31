@@ -5,6 +5,8 @@ pushd "%cd%"
 cd /d "%~dp0"
 if /i not "%cd%\"=="%~dp0" cd /d "%~dp0"
 set logs=%~dp0..\..\Logs
+if not exist "%SystemRoot%\SysWOW64" (set "arch=x86") else (set "arch=x64")
+set SystemUser=%~dp0superUser_%arch%.exe /c
 set allrf=del /f /q /s
 set rf=del /f /q
 set rgd=reg delete
@@ -14,9 +16,9 @@ set rga=reg add
 %rga% "HKCU\SOFTWARE\VB and VBA Program Settings\K Clock\CapTime" /v "AMPM" /t REG_SZ /d "False" /f >nul 2>&1
 %rga% "HKCU\SOFTWARE\VB and VBA Program Settings\K Clock\CapTime" /v "Speed" /t REG_SZ /d "11" /f >nul 2>&1
 %rga% "HKCU\SOFTWARE\VB and VBA Program Settings\K Clock\CapTime" /v "RemoveCount" /t REG_SZ /d "0" /f >nul 2>&1
-%~dp0nircmdc.exe exec2 hide %~dp0 "%~dp0captime.exe" /noicon
+%~dp0nircmdc_%arch%.exe exec hide "%~dp0captime.exe" /noicon
 timeout /t 1 /nobreak | break
-%~dp0nircmdc.exe win hide process "captime.exe"
+%~dp0nircmdc_%arch%.exe win hide process "captime.exe"
 setlocal enableextensions enabledelayedexpansion
 if defined SAFEBOOT_OPTION (
 	echo  *** Вы находитесь в безопасном режиме^! Данный скрипт предназначен только для запуска в обычном режиме. ***
@@ -36,7 +38,7 @@ if %errorlevel% neq 0 (
 	"%logs%\getadmin.vbs" goto :eof
 )
 if exist "%logs%\getadmin.vbs" ( %rf% "%logs%\getadmin.vbs" >nul 2>&1 ) & goto :eof
-set ScriptVersion=v0.9.4 Stable
+set ScriptVersion=v0.9.5 Stable
 set HostOSName=
 set HostArchitecture=
 set HostLanguage=
@@ -118,8 +120,6 @@ set logfile=%logs%\MegaTweakPack_%daytime%.log
 echo %daytimecmd% > %~dp0launched.mtp
 powershell "Set-ExecutionPolicy Unrestricted" | break
 setx NUGET_XMLDOC_MODE skip | break
-if not exist "%SystemRoot%\SysWOW64" (set "arch=x86") else (set "arch=x64")
-set SystemUser=%~dp0superUser_%arch%.exe /c
 set "PS=powershell -NoLogo -NoProfile -NonInteractive -InputFormat None -ExecutionPolicy Bypass -Command"
 set autoChoose=30
 set keySelY="Выполнить задачу? Действие по-умолчанию: запуск задачи через %autoChoose% секунд. [Y:Выполнить / N:Пропустить]"
@@ -138,7 +138,7 @@ rem ############################################################################
 @echo %clr%[0m %clr%[93mСоздание точки восстановления. Пожалуйста, подождите...%clr%[92m
 @echo Создание точки восстановления. 1>> %logfile%
 set timerStart=!time!
-reg load "HKU\.DEFAULT" "%SystemDrive%\Users\Default\NTUSER.DAT" 1>> %logfile% 2>>&1
+rem reg load "HKU\.DEFAULT" "%SystemDrive%\Users\Default\NTUSER.DAT" 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "SystemRestorePointCreationFrequency" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableConfig" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v "DisableSR" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
@@ -1686,11 +1686,11 @@ set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 echo. 1>> %logfile%
-@echo %clr%[91m 20.%clr%[36m Запретить весь NTLM траффик?%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m блокировка запросов NTLM нарушает работу RDP и Samba.
+@echo %clr%[91m 20.%clr%[36m Предотвратить отправку учетных данных NTLM на удаленные серверы?%clr%[92m %clr%[7;31mПредупреждение:%clr%[0m%clr%[36m%clr%[92m блокировка запросов NTLM нарушает авторизацию в RDP и Samba.
 choice /c yn /n /t %autoChoose% /d n /m %keySelN%
 if !errorlevel!==1 (
-	@echo %clr%[0m %clr%[93mЗапрет NTLM траффика применен.%clr%[92m
-	@echo Запрет NTLM траффика применен. Предупреждение: блокировка запросов NTLM нарушает работу RDP и Samba. 1>> %logfile%
+	@echo %clr%[0m %clr%[93mЗапрет отправки учетных данных NTLM применен.%clr%[92m
+	@echo Запрет отправки учетных данных NTLM применен. Предупреждение: блокировка запросов NTLM нарушает авторизацию в RDP и Samba. 1>> %logfile%
 	set timerStart=!time!
 	%rga% "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0" /v "RestrictReceivingNTLMTraffic" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0" /v "RestrictSendingNTLMTraffic" /t REG_DWORD /d "2" /f 1>> %logfile% 2>>&1
@@ -1832,7 +1832,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 28.%clr%[36m Отключить привязку QoS.%clr%[92m
 @echo Отключить привязку QoS. 1>> %logfile%
 set timerStart=!time!
-nmbind /d * ms_pacer 1>> %logfile% 2>>&1
+%~dp0nvspbind_%arch%.exe /d * ms_pacer 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1867,7 +1867,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 32.%clr%[36m Отключить захват NDIS.%clr%[92m
 @echo Отключить захват NDIS. 1>> %logfile%
 set timerStart=!time!
-nmbind /d * ms_ndiscap 1>> %logfile% 2>>&1
+%~dp0nvspbind_%arch%.exe /d * ms_ndiscap 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1875,7 +1875,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 33.%clr%[36m Отключить протокол обнаружения локальных каналов (LLDP).%clr%[92m
 @echo Отключить протокол обнаружения локальных каналов (LLDP). 1>> %logfile%
 set timerStart=!time!
-nmbind /d * ms_lldp 1>> %logfile% 2>>&1
+%~dp0nvspbind_%arch%.exe /d * ms_lldp 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1883,8 +1883,8 @@ echo. 1>> %logfile%
 @echo %clr%[91m 34.%clr%[36m Отключить обнаружение топологии локального канала (LLTD).%clr%[92m
 @echo Отключить обнаружение топологии локального канала (LLTD). 1>> %logfile%
 set timerStart=!time!
-nmbind /d * ms_lltdio 1>> %logfile% 2>>&1
-nmbind /d * ms_rspndr 1>> %logfile% 2>>&1
+%~dp0nvspbind_%arch%.exe /d * ms_lltdio 1>> %logfile% 2>>&1
+%~dp0nvspbind_%arch%.exe /d * ms_rspndr 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -1892,7 +1892,7 @@ echo. 1>> %logfile%
 @echo %clr%[91m 35.%clr%[36m Отключить сетевой стек IPv6.%clr%[92m
 @echo Отключить сетевой стек IPv6. 1>> %logfile%
 set timerStart=!time!
-nmbind /d * ms_tcpip6 1>> %logfile% 2>>&1
+%~dp0nvspbind_%arch%.exe /d * ms_tcpip6 1>> %logfile% 2>>&1
 call :disable_svc Tcpip6
 call :disable_svc wanarpv6
 set timerEnd=!time!
@@ -2413,7 +2413,8 @@ set timerStart=!time!
 %rga% "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v "AllowUntriggeredNetworkTrafficOnSettingsPage" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v "AutoDownloadAndUpdateMapData" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SYSTEM\Maps" /v "AutoUpdateEnabled" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
-call :disable_svc MapsBroker
+rem Диспетчер загрузки карт влияет на работу приложении с картами.
+call :delayed_svc MapsBroker
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5223,7 +5224,7 @@ if !errorlevel!==1 (
 	call :disable_svc Mrxsmb10
 	call :delayed_svc Mrxsmb20
 	call :delayed_svc srv2
-	nmbind /e * ms_server 1>> %logfile% 2>>&1
+	%~dp0nvspbind_%arch%.exe /d * ms_server 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -5409,6 +5410,7 @@ if "%arch%"=="x64" (
 	%rga% "HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\Onedrive" /v "DisableLibrariesDefaultSaveToOneDrive" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 	%rga% "HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\Onedrive" /v "DisableMeteredNetworkFileSync" /t REG_DWORD /d "0" /f 1>> %logfile% 2>>&1
 )
+call :acl_file-folders "%LocalAppData%\Microsoft\OneDrive"
 %rf% "%LocalAppData%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe" 1>> %logfile% 2>>&1
 rmdir /s /q "%UserProfile%\OneDrive" "%ProgramData%\Microsoft OneDrive" "%LocalAppData%\Microsoft\OneDrive" "%SystemDrive%\OneDriveTemp" 1>> %logfile% 2>>&1
 %rf% "%AppData%\Microsoft\Windows\Start Menu\Programs\Microsoft OneDrive.lnk" 1>> %logfile% 2>>&1
@@ -5922,8 +5924,6 @@ rem Пользовательская служба DVR для игр и трансляции.
 call :disable_svc_sudo BcastDVRUserService
 rem Брокер монитора времени выполнения System Guard.
 call :disable_svc_sudo Sgrmbroker
-rem Служба диспетчера скачанных карт.
-call :disable_svc MapsBroker
 rem Пользовательская служба буфера обмена.
 call :disable_svc cbdhsvc
 rem Смарт-карты для Windows.
@@ -6094,7 +6094,7 @@ if exist "%ProgramFiles%\NVIDIA Corporation\Installer2\InstallerCore\NVI2.DLL" (
     rundll32 "%ProgramFiles%\NVIDIA Corporation\Installer2\InstallerCore\NVI2.DLL",UninstallPackage NvTelemetryContainer 1>> %logfile% 2>>&1
     rundll32 "%ProgramFiles%\NVIDIA Corporation\Installer2\InstallerCore\NVI2.DLL",UninstallPackage NvTelemetry 1>> %logfile% 2>>&1
 )
-%rf% %SystemRoot%\System32\DriverStore\FileRepository\NvTelemetry*.dll 1>> %logfile% 2>>&1
+%rf% "%SystemRoot%\System32\DriverStore\FileRepository\NvTelemetry*" 1>> %logfile% 2>>&1
 rd /s /q "%ProgramFiles(x86)%\NVIDIA Corporation\NvTelemetry" 1>> %logfile% 2>>&1
 rd /s /q "%ProgramFiles%\NVIDIA Corporation\NvTelemetry" 1>> %logfile% 2>>&1
 call :disable_svc NvTelemetryContainer
@@ -6122,7 +6122,7 @@ echo. 1>> %logfile%
 set timerStart=!time!
 %rga% "HKLM\SOFTWARE\Policies\Mozilla\Firefox" /v "DisableTelemetry" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
 %rga% "HKLM\SOFTWARE\Policies\Mozilla\Firefox" /v "DisableDefaultBrowserAgent" /t REG_DWORD /d "1" /f 1>> %logfile% 2>>&1
-for /f "tokens=3* delims=\" %%i in ('schtasks /query /fo list ^| find /i "Firefox"') do call :disable_task "\%%i"
+for /f "tokens=3* delims=\" %%i in ('schtasks /query /fo list ^| find /i "Firefox"') do call :disable_task "\Mozilla\%%i"
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -6394,7 +6394,7 @@ if !errorlevel!==1 (
 	xcopy "%~dp0devxexec.exe" "%SystemRoot%\System32" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0devxexec.exe" "%SystemRoot%\SysWOW64" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0hidcon.exe" "%SystemRoot%\System32" /c /q /h /r /y 1>> %logfile% 2>>&1
-	xcopy "%~dp0nircmdc.exe" "%SystemRoot%\System32" /c /q /h /r /y 1>> %logfile% 2>>&1
+	xcopy "%~dp0nircmdc_%arch%.exe" "%SystemRoot%\System32\nircmdc.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0subinacl.exe" "%SystemRoot%\System32" /c /q /h /r /y 1>> %logfile% 2>>&1
 	if "%arch%"=="x64" (
 		xcopy "%~dp0comctl32.ocx" "%SystemRoot%\SysWOW64" /c /q /h /r /y 1>> %logfile% 2>>&1
@@ -6440,59 +6440,69 @@ if !errorlevel!==1 (
 	%rga% "HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\BagMRU" /v "MRUListEx" /t REG_BINARY /d "02000000060000000500000004000000010000000000000003000000FFFFFFFF" /f 1>> %logfile% 2>>&1
 	rem %rga% "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Notifications\Data" /v "418A073AA3BC3475" /t REG_BINARY /d "7D410000000000000400040001020D00000000000E0000001C390B010100000030E82B010400000059B50501F40000006B507E00030000008A8385003200000090A6A101030000009829B7001200000099CBDC0025460000A19F5E0075000000DBB4EF0002000000F1D9A30008000000F4A4C30004000000F848B1000E0001000000AF010000007D7500040000000868E30006000000186565013E000000187DC700950000003DD734010B50000056737D005C0800006B507E000E00000085CAA9008C0000008A8385004801000090D5D000500000009829B7009D020000A6751801592C0000B087B4005C080000E6C531000500050000002A0000004F871A011200000096390B01340100009FC8CA000A000000A9B2DB0010000000C221D100020008000000C89B6328025FB500153A970F59B50501010009000000DC6200008A8385000500640000004800000014E8B700E5020000421D0B01CA050000461D0B016E934D00E79EB500C5A70100FF9EB5000E0065000000329A00001C955C00F4BA50002FBDB7005871070046BDB700A014000065A69E003A000000779B93004F01000090D5D000F40200009CA6B40071D10000A205060048000000BAA6B70015050000C46B81002F070000CABCB700CE49D500E6C5310082AF0200F0E0B60055020000F7125E00050066000000A221490046BDB700372C000065A69E00E506000074AFB7003A000000779B9300A57B0000A2050600040067000000C89B6328025FB500FA27000046BDB7005800000065A69E000C160000A2050600020068000000C1160000A2050600139C0100CABCB700020069000000BD110000025FB5009C20000065A69E0003006A000000E9000000025FB50048000000680FB80097040000E79EB50002006B00000067030000025FB5007200000065A69E0001006C000000B2060000A205060001006D00000004000000A205060002006E00000083040000CABCB700EF220300E79EB50001006F00000004000000A20506000200700000003A10000065A69E003B240100A2050600020071000000E800000065A69E0001010000A20506000100720000005E930000A2050600010073000000471B000065A69E000100750000001900000065A69E00010076000000A902000065A69E00010077000000ED02000065A69E000100780000007802000065A69E000100790000003763000065A69E0001007B0000001900000065A69E0001007D000000CE17000065A69E0001007F000000811C000065A69E000100810000002B0B000065A69E0001009700000025080000BEB3EF000100C0010000080000001FC87500" /f 1>> %logfile% 2>>&1
 	rem Стать владельцем по правой кнопке мыши
-	%rga% "HKCR\*\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена владельца" /f 1>> %logfile% 2>>&1
-	%rga% "HKCR\*\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "file_takeown_trust;file_takeown_sys;file_takeown_adm" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\*\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена прав и владельца" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\*\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "file_takeown_trust;file_takeown_sys;file_takeown_adm;file_takeown_usr" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\*\shell\TakeOwn" /v "Icon" /t REG_SZ /d "imageres.dll,117" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\*\shell\TakeOwn" /v "NoWorkingDirectory" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\*\shell\TakeOwn" /v "Position" /t REG_SZ /d "middle" /f 1>> %logfile% 2>>&1
 	rem Добавление меню для папок
-	%rga% "HKCR\Directory\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена владельца" /f 1>> %logfile% 2>>&1
-	%rga% "HKCR\Directory\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "folder_takeown_trust;folder_takeown_sys;folder_takeown_adm" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\Directory\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена прав и владельца" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\Directory\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "folder_takeown_trust;folder_takeown_sys;folder_takeown_adm;folder_takeown_usr" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\shell\TakeOwn" /v "Icon" /t REG_SZ /d "imageres.dll,117" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\shell\TakeOwn" /v "NoWorkingDirectory" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Directory\shell\TakeOwn" /v "Position" /t REG_SZ /d "middle" /f 1>> %logfile% 2>>&1
 	rem Добавление меню для дисков
-	%rga% "HKCR\Drive\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена владельца" /f 1>> %logfile% 2>>&1
-	%rga% "HKCR\Drive\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "folder_takeown_trust;folder_takeown_sys;folder_takeown_adm" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\Drive\shell\TakeOwn" /v "MUIVerb" /t REG_SZ /d "Смена прав и владельца" /f 1>> %logfile% 2>>&1
+	%rga% "HKCR\Drive\shell\TakeOwn" /v "SubCommands" /t REG_SZ /d "folder_takeown_trust;folder_takeown_sys;folder_takeown_adm;folder_takeown_usr" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Drive\shell\TakeOwn" /v "Icon" /t REG_SZ /d "imageres.dll,117" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Drive\shell\TakeOwn" /v "NoWorkingDirectory" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
 	%rga% "HKCR\Drive\shell\TakeOwn" /v "Position" /t REG_SZ /d "middle" /f 1>> %logfile% 2>>&1
 	rem Название пункта меню установки владельца TrustedInstaller для файлов
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust" /ve /t REG_SZ /d "Назначить владельцем TrustedInstaller" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust" /ve /t REG_SZ /d "Предоставить для TrustedInstaller" /f 1>> %logfile% 2>>&1
 	rem Команда установки владельца TrustedInstaller для файлов
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 /grant=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 /grant=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464=f" /f 1>> %logfile% 2>>&1
 	rem Название пункта меню установки владельца Система для файлов
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys" /ve /t REG_SZ /d "Назначить владельцем Система" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys" /ve /t REG_SZ /d "Предоставить для Система" /f 1>> %logfile% 2>>&1
 	rem Команда установки владельца Система для файлов
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 /grant=S-1-5-18=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_sys\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 /grant=S-1-5-18=f" /f 1>> %logfile% 2>>&1
 	rem Название пункта меню установки владельца Администраторы для файлов
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm" /ve /t REG_SZ /d "Назначить владельцем Администраторы" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm" /ve /t REG_SZ /d "Предоставить для Администраторы" /f 1>> %logfile% 2>>&1
 	rem Команда установки владельца Администраторы для файлов
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 /grant=S-1-5-32-544=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 /grant=S-1-5-32-544=f" /f 1>> %logfile% 2>>&1
+	rem Название пункта меню установки владельца Пользователь для файлов
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_usr" /ve /t REG_SZ /d "Предоставить для %username%" /f 1>> %logfile% 2>>&1
+	rem Команда установки владельца Пользователь для файлов
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_usr\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=%username% /grant=%username%=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\file_takeown_usr\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=%username% /grant=%username%=f" /f 1>> %logfile% 2>>&1
 	rem Название пункта меню установки владельца TrustedInstaller для файлов, дисков и папок
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust" /ve /t REG_SZ /d "Назначить владельцем TrustedInstaller" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust" /ve /t REG_SZ /d "Предоставить для TrustedInstaller" /f 1>> %logfile% 2>>&1
 	rem Команда установки владельца TrustedInstaller для файлов, дисков и папок
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 /grant=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464=f & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 /grant=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_trust\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 /grant=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464=f & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464 /grant=S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464=f" /f 1>> %logfile% 2>>&1
 	rem Название пункта меню установки владельца Система для файлов, дисков и папок
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys" /ve /t REG_SZ /d "Назначить владельцем Система" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys" /ve /t REG_SZ /d "Предоставить для Система" /f 1>> %logfile% 2>>&1
 	rem Команда установки владельца Система для файлов, дисков и папок
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 /grant=S-1-5-18=f & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18 /grant=S-1-5-18=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_sys\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-18 /grant=S-1-5-18=f & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-18 /grant=S-1-5-18=f" /f 1>> %logfile% 2>>&1
 	rem Название пункта меню установки владельца Администраторы для файлов, дисков и папок
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm" /v "HasLUAShield" /t REG_SZ /d "" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm" /ve /t REG_SZ /d "Назначить владельцем Администраторы" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm" /ve /t REG_SZ /d "Предоставить для Администраторы" /f 1>> %logfile% 2>>&1
 	rem Команда установки владельца Администраторы для файлов, дисков и папок
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
-	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 /grant=S-1-5-32-544=f & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544 /grant=S-1-5-32-544=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_adm\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=S-1-5-32-544 /grant=S-1-5-32-544=f & subinacl /subdirectories \"%%1\*.*\" /setowner=S-1-5-32-544 /grant=S-1-5-32-544=f" /f 1>> %logfile% 2>>&1
+	rem Название пункта меню установки владельца Пользователь для файлов, дисков и папок
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_usr" /ve /t REG_SZ /d "Предоставить для %username%" /f 1>> %logfile% 2>>&1
+	rem Команда установки владельца Пользователь для файлов, дисков и папок
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_usr\command" /ve /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=%username% /grant=%username%=f & subinacl /subdirectories \"%%1\*.*\" /setowner=%username% /grant=%username%=f" /f 1>> %logfile% 2>>&1
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\folder_takeown_usr\command" /v "IsolatedCommand" /t REG_SZ /d "nircmdc elevate %SystemRoot%\system32\cmd.exe /c subinacl /subdirectories \"%%1\" /setowner=%username% /grant=%username%=f & subinacl /subdirectories \"%%1\*.*\" /setowner=%username% /grant=%username%=f" /f 1>> %logfile% 2>>&1
 	rem Программы и компоненты в папке Компьютер
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{D20EA4E1-3957-11d2-A40B-0C5020524153}" /f 1>> %logfile% 2>>&1
 	rem Сетевые подключения в папке Компьютер
@@ -7056,7 +7066,7 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
 	@echo. 1>> %logfile%
 )
-@echo %clr%[36m Добавить расширение XnShell в контекстное меню для просмотра превью изображений и их редактирования?.%clr%[92m
+@echo %clr%[36m Добавить расширение XnShell в контекстное меню для просмотра превью изображений и их редактирования?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
 	@echo %clr%[0m %clr%[93mДобавление расширения XnShell в контекстное меню для просмотра превью изображений и их редактирования. Пожалуйста, подождите...%clr%[92m
@@ -7070,7 +7080,7 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
-@echo %clr%[36m Добавить в автозагрузку утилиту ClipAngel для захвата данных в буфере обмена для последующего просмотра?.%clr%[92m
+@echo %clr%[36m Добавить в автозагрузку утилиту ClipAngel для захвата данных в буфере обмена для последующего просмотра?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
 	@echo %clr%[0m %clr%[93mДобавление в автозагрузку утилиты ClipAngel для захвата данных в буфере обмена для последующего просмотра. Пожалуйста, подождите...%clr%[92m
@@ -7083,7 +7093,7 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
-@echo %clr%[36m Добавить в автозагрузку утилиту X-Mouse Button Control для тонкой настройки дополнительных возможностей мыши?.%clr%[92m
+@echo %clr%[36m Добавить в автозагрузку утилиту X-Mouse Button Control для тонкой настройки дополнительных возможностей мыши?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
 	@echo %clr%[0m %clr%[93mДобавление в автозагрузку утилиты X-Mouse Button Control для тонкой настройки дополнительных возможностей мыши. Пожалуйста, подождите...%clr%[92m
@@ -7150,6 +7160,7 @@ if "%arch%"=="x64" (
 		@echo Установка панели управления NVIDIA v.8.1.962.0. 1>> %logfile%
 		set timerStart=!time!
 		%PS% "Add-AppxPackage -Path '%~dp0NVIDIA\NVIDIACorp.NVIDIAControlPanel_8.1.962.0_x64__56jybvy8sckqj.Appx'" 1>> %logfile% 2>>&1
+		call :auto_svc NVDisplay.ContainerLocalSystem
 		set timerEnd=!time!
 		call :timer
 		@echo ОК %clr%[93m[%clr%[91m!mins!%clr%[0m минут %clr%[91m!secs!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -7265,7 +7276,7 @@ set timerStart=!time!
 call :kill "quietHDD.exe"
 start "" /wait "%~dp0..\Installers\quietHDD.exe"
 %rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "quietHDD" /t REG_SZ /d "\"%SystemRoot%\Tools\quietHDD\quietHDD.exe\" /NOTRAY /ACAPMVALUE:255 /DCAPMVALUE:255 /ACAAMVALUE:254 /DCAAMVALUE:254 /NOWARN" /f 1>> %logfile% 2>>&1
-reg unload "HKU\.DEFAULT" 1>> %logfile% 2>>&1
+rem reg unload "HKU\.DEFAULT" 1>> %logfile% 2>>&1
 set timerEnd=!time!
 call :timer
 @echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -7316,6 +7327,18 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
+@echo %clr%[36m Установить приложение, позволяющее управлять громкостью звука любого открытого приложения из единой панели?%clr%[92m
+choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+if !errorlevel!==1 (
+	@echo %clr%[0m %clr%[93mУстановка приложения, позволяющего управлять громкостью звука любого открытого приложения из единой панели. Пожалуйста, подождите...%clr%[92m
+	@echo Установка приложения, позволяющего управлять громкостью звука любого открытого приложения из единой панели. 1>> %logfile%
+	set timerStart=!time!
+	%PS% "Add-AppxPackage -Path '%~dp0EarTrumpet\40459File-New-Project.EarTrumpet_2.2.0.0_neutral___1sdd7yawvg6ne.AppxBundle'" 1>> %logfile% 2>>&1
+	set timerEnd=!time!
+	call :timer
+	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	echo. 1>> %logfile%
+)
 @echo %clr%[36m Выставить значки панели задач по центру и спрятать значок Пуск ^(стиль Windows 11^)?%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
@@ -7325,6 +7348,20 @@ if !errorlevel!==1 (
 	call :kill "TaskbarX.exe"
 	start "" /wait "%~dp0..\Installers\TaskbarX.exe"
 	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "TaskbarX" /t REG_SZ /d "\"%SystemRoot%\Tools\TaskbarX\TaskbarX.exe\" -tbs=1 -color=0;0;0;50 -tpop=100 -tsop=100 -as=cubiceaseinout -obas=cubiceaseinout -tbr=0 -asp=300 -ptbo=0 -stbo=0 -lr=400 -oblr=400 -sr=0 -sr2=0 -sr3=0 -ftotc=1 -rzbt=1 -hps=1 -hss=1" /f 1>> %logfile% 2>>&1
+	set timerEnd=!time!
+	call :timer
+	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	echo. 1>> %logfile%
+)
+@echo %clr%[36m Установить приложение для создания снимков экрана и скринкастов со множеством настроек?%clr%[92m
+choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+if !errorlevel!==1 (
+	@echo %clr%[0m %clr%[93mУстановка приложения для создания снимков экрана и скринкастов со множеством настроек. Пожалуйста, подождите...%clr%[92m
+	@echo Установка приложения для создания снимков экрана и скринкастов со множеством настроек. 1>> %logfile%
+	set timerStart=!time!
+	call :kill "ShareX.exe"
+	start "" /wait "%~dp0..\Installers\ShareX.exe"
+	%rga% "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "ShareX" /t REG_SZ /d "%SystemRoot%\Tools\ShareX\ShareX.exe" /f 1>> %logfile% 2>>&1
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
@@ -7365,12 +7402,25 @@ if !errorlevel!==1 (
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
 	echo. 1>> %logfile%
 )
+@echo %clr%[36m Установить утилиту для оптимизации и выбора профилей производительности CPU и GPU?.%clr%[92m
+choice /c yn /n /t %autoChoose% /d y /m %keySelY%
+if !errorlevel!==1 (
+	@echo %clr%[0m %clr%[93mУстановка утилиты для оптимизации и выбора профилей производительности CPU и GPU. Пожалуйста подождите...%clr%[92m
+	@echo Установка утилиты для оптимизации и выбора профилей производительности CPU и GPU. 1>> %logfile%
+	set timerStart=!time!
+	start "" /wait "%~dp0..\Installers\ProfileSelector.exe"
+	set timerEnd=!time!
+	call :timer
+	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m
+	echo. 1>> %logfile%
+)
 @echo %clr%[36m Создать папку с дополнительными утилитами на рабочем столе?.%clr%[92m
 choice /c yn /n /t %autoChoose% /d y /m %keySelY%
 if !errorlevel!==1 (
 	@echo %clr%[0m %clr%[93mСоздание папки с дополнительными утилитами на рабочем столе. Пожалуйста подождите...%clr%[92m
 	@echo Создание папки с дополнительными утилитами на рабочем столе. 1>> %logfile%
 	set timerStart=!time!
+	xcopy "%~dp0nircmdc_%arch%.exe" "%SystemRoot%\System32\nircmdc.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0EmptyStandbyList.exe" "%SystemRoot%\Tools\EmptyStandbyList.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0MSI_util_v3.exe" "%SystemRoot%\Tools\MSI_util_v3.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
 	xcopy "%~dp0..\Tools\nvidiaProfileInspector.exe" "%SystemRoot%\Tools\nvidiaProfileInspector.exe" /c /q /h /r /y 1>> %logfile% 2>>&1
@@ -7387,6 +7437,7 @@ if !errorlevel!==1 (
 	start "" /wait "%~dp0..\Installers\CompatibilityManager.exe"
 	start "" /wait "%~dp0..\Installers\LatencyMon.exe"
 	start "" /wait "%~dp0..\Installers\ExecutionMaster.exe"
+	start "" /wait "%~dp0..\Installers\NoVideo_SRGB.exe"
 	call :kill "ProcessLasso.exe"
 	call :kill "bitsumsessionagent.exe"
 	call :kill "srvstub.exe"
@@ -7412,6 +7463,7 @@ if !errorlevel!==1 (
 	nircmdc shortcut "%SystemRoot%\Tools\REAL.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Уменьшение задержки звука на устройствах воспроизведения (после запуска приложение свернется в трей)" "--tray" "%SystemRoot%\Tools\REAL.exe"
 	nircmdc shortcut "%SystemRoot%\Tools\vibranceGUI.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Настройка цифровой вибрации и насыщенности в играх и приложениях" "" "%SystemRoot%\Tools\vibranceGUI.exe"
 	nircmdc shortcut "%SystemRoot%\Tools\ExecutionMaster\ExecutionMaster.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Добавление или именение разрешений на запуск приложений" "" "%SystemRoot%\Tools\ExecutionMaster\ExecutionMaster.exe"
+	nircmdc shortcut "%SystemRoot%\Tools\NoVideo_SRGB\novideo_srgb.exe" "~$folder.common_desktop$\Дополнительные ярлыки" "Калибровка мониторов по sRGB или другим цветовым пространствам на графических процессорах NVIDIA и основе данных EDID или профилей ICC" "" "%SystemRoot%\Tools\NoVideo_SRGB\novideo_srgb.exe"
 	set timerEnd=!time!
 	call :timer
 	@echo ОК %clr%[93m[%clr%[91m!totalsecs!.!ms!%clr%[0m секунд%clr%[93m]%clr%[92m

@@ -6,7 +6,7 @@
 
 Скрипт предназначен только для русскоязычных пользователей!<br>
 
-Скачать архивом последнюю сборку MegaTweakPack можно отсюда - https://github.com/TheDoctorTash/MegaTweakPack/releases/download/0.9.5/MegaTweakPack_v0.9.5.zip
+Скачать архивом последнюю сборку MegaTweakPack можно отсюда - [https://github.com/TheDoctorTash/MegaTweakPack/releases/download/0.9.5/MegaTweakPack_v0.9.5.zip](https://github.com/TheDoctorTash/MegaTweakPack/releases/download/0.9.5/MegaTweakPack_v.0.9.5.zip)
 
 =======
 
